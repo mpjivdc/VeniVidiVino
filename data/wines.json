@@ -1,0 +1,26 @@
+[
+  {
+    "id": "seed-1",
+    "name": "Cabernet Sauvignon",
+    "producer": "Stag's Leap",
+    "year": 2018,
+    "type": "Red",
+    "region": "Napa Valley",
+    "country": "USA",
+    "rating": 4.8,
+    "dateAdded": "2024-01-01T12:00:00Z",
+    "notes": "Excellent structure, dark fruit."
+  },
+  {
+    "id": "seed-2",
+    "name": "Chablis Grand Cru",
+    "producer": "William Fevre",
+    "year": 2020,
+    "type": "White",
+    "region": "Burgundy",
+    "country": "France",
+    "rating": 4.6,
+    "dateAdded": "2024-01-02T12:00:00Z",
+    "notes": "Crisp, mineral, elegant."
+  }
+]
