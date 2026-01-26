@@ -25,6 +25,9 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "My Wine Cellar",
   description: "Personal wine collection manager",
+  icons: {
+    apple: "/apple-icon.png",
+  },
 };
 
 export default function RootLayout({
