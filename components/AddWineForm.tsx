@@ -156,6 +156,7 @@ export function AddWineForm() {
         setIsScanning(true)
         try {
             const formData = new FormData()
+            formData.append("image", file)
             console.log('Sending image to server for AI scan...');
             const response = await fetch("/api/upload", { method: "POST", body: formData })
             console.log('Server response received!');
