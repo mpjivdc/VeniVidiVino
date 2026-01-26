@@ -23,7 +23,7 @@ export function WineCard({ wine, sheetTitle }: WineCardProps) {
     const [isOpen, setIsOpen] = useState(false)
 
     // Drinking Window Logic
-    const currentYear = 2026
+    const currentYear = new Date().getFullYear()
     let windowStatus: { color: string, label: string } | null = null
 
     if (wine.drinkFrom && wine.drinkTo) {
