@@ -77,6 +77,7 @@ export async function addWine(wine: Omit<Wine, "id" | "dateAdded">, destinations
 
     const newWine: any = {
         ...wine,
+        ImageData: wine.image,
         id: crypto.randomUUID(),
         dateAdded: new Date().toISOString(),
         tastingNotes: JSON.stringify(wine.tastingNotes || []),
@@ -132,6 +133,10 @@ export async function updateWine(id: string, updates: Partial<Wine>, sheetTitle:
         const serializedUpdates: any = { ...updates };
         if (updates.tastingNotes) serializedUpdates.tastingNotes = JSON.stringify(updates.tastingNotes);
         if (updates.grapes) serializedUpdates.grapes = JSON.stringify(updates.grapes);
+        if (updates.image) {
+            serializedUpdates.ImageData = updates.image;
+            delete serializedUpdates.image;
+        }
 
         Object.entries(serializedUpdates).forEach(([key, value]) => {
             if (value !== undefined && value !== null) row.set(key, value.toString());
