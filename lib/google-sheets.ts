@@ -16,11 +16,7 @@ export async function getDoc() {
         scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
 
-    const sheetId = process.env.GOOGLE_SHEET_ID;
-
-    if (!sheetId) {
-        throw new Error("Missing GOOGLE_SHEET_ID environment variable");
-    }
+    const sheetId = '1xbOaIsbnrxTMqc77L3QYnMXTiecMrT3PtQyn4aAlSOE';
 
     console.log(`Connecting to Sheet ID: ${sheetId}`);
 
