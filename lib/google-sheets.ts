@@ -22,7 +22,7 @@ export async function getDoc() {
         throw new Error("Missing GOOGLE_SHEET_ID environment variable");
     }
 
-    console.log(`[GoogleSheets] Connecting to Spreadsheet ID: ${sheetId}`);
+    console.log(`Connecting to Sheet ID: ${sheetId}`);
 
     const doc = new GoogleSpreadsheet(sheetId, serviceAccountAuth);
     await doc.loadInfo();
