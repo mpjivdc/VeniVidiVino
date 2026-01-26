@@ -36,9 +36,11 @@ import { WineType } from "@/lib/types"
 const wineTypes: WineType[] = ["Red", "White", "Rose", "Sparkling", "Dessert", "Fortified", "Orange", "Other"]
 
 const tastingNoteOptions = {
-    Fruit: ["Cherry", "Blackberry", "Apple", "Citrus", "Plum", "Peach"],
-    Earthy: ["Leather", "Tobacco", "Mushroom", "Forest Floor", "Soil"],
-    Structure: ["High Acid", "Tannic", "Oaked", "Silky", "Dry", "Sweet"],
+    Fruit: ["Red Cherry", "Raspberry", "Black Plum", "Blackberry", "Lemon", "Green Apple", "Peach", "Apricot"],
+    Floral: ["Rose", "Violet", "Blossom", "Honeysuckle"],
+    "Earthy/Savory": ["Forest Floor", "Mushroom", "Leather", "Tobacco", "Wet Stones"],
+    "Spice & Oak": ["Vanilla", "Cedar", "Black Pepper", "Cloves", "Smoke", "Chocolate"],
+    Structure: ["High Acidity", "Firm Tannins", "Full-Bodied", "Silky", "Crisp"],
 };
 
 const formSchema = z.object({
