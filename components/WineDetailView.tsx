@@ -50,10 +50,15 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
         tastingNotes.forEach(note => formData.append("tastingNotes", note))
 
         try {
-            await updateWineAction(wine.id, formData, sheetTitle)
-            setIsEditing(false)
-        } catch (error) {
+            const result = await updateWineAction(wine.id, formData, sheetTitle)
+            if (result?.success) {
+                setIsEditing(false)
+            } else {
+                alert(`Update failed: ${result?.error || "Unknown error"}`)
+            }
+        } catch (error: any) {
             console.error("Save error", error)
+            alert(`Critical error during save: ${error.message}`)
         } finally {
             setIsSaving(false)
         }
@@ -63,10 +68,16 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
         if (!confirm("Are you sure you want to delete this wine?")) return
         setIsDeleting(true)
         try {
-            await deleteWineAction(wine.id, sheetTitle)
-            onClose()
-        } catch (error) {
+            const result = await deleteWineAction(wine.id, sheetTitle)
+            if (result?.success) {
+                onClose()
+            } else {
+                alert(`Delete failed: ${result?.error || "Unknown error"}`)
+                setIsDeleting(false)
+            }
+        } catch (error: any) {
             console.error("Delete error", error)
+            alert(`Critical error during delete: ${error.message}`)
             setIsDeleting(false)
         }
     }

@@ -1,92 +1,119 @@
 "use server"
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { addWine, deleteWine, updateWine } from "./storage";
 import { Wine, WineType } from "./types";
 
 export async function createWine(formData: FormData) {
-    // Identity
-    const name = formData.get("name") as string;
-    const producer = formData.get("producer") as string;
-    const vintage = parseInt(formData.get("vintage") as string) || new Date().getFullYear();
-    const type = formData.get("type") as WineType;
-    const country = formData.get("country") as string;
-    const region = formData.get("region") as string;
-    const subRegion = formData.get("subRegion") as string;
-    const grapes = formData.getAll("grapes") as string[];
+    try {
+        console.log("[STRICT DEBUG] ACTION STARTED: createWine");
 
-    // Specs
-    const alcoholContent = parseFloat(formData.get("alcoholContent") as string) || undefined;
-    const bottleSize = formData.get("bottleSize") as string;
+        // Identity
+        const name = formData.get("name") as string;
+        const producer = formData.get("producer") as string;
+        const vintage = parseInt(formData.get("vintage") as string) || new Date().getFullYear();
+        const type = formData.get("type") as WineType;
+        const country = formData.get("country") as string;
+        const region = formData.get("region") as string;
+        const subRegion = formData.get("subRegion") as string;
+        const grapes = formData.getAll("grapes") as string[];
 
-    // Inventory
-    const quantity = parseInt(formData.get("quantity") as string) || 1;
-    const location = formData.get("location") as string;
+        console.log(`[STRICT DEBUG] PARSED DATA: ${name} by ${producer} (${vintage})`);
 
-    // Timeline
-    const drinkFrom = parseInt(formData.get("drinkFrom") as string) || undefined;
-    const drinkTo = parseInt(formData.get("drinkTo") as string) || undefined;
-    const boughtAt = formData.get("boughtAt") as string;
-    const boughtDate = formData.get("boughtDate") as string;
-    const price = parseFloat(formData.get("price") as string) || undefined;
+        // Specs
+        const alcoholContent = parseFloat(formData.get("alcoholContent") as string) || undefined;
+        const bottleSize = formData.get("bottleSize") as string;
 
-    // Review
-    const rating = parseFloat(formData.get("rating") as string) || undefined;
-    const tastingNotes = formData.getAll("tastingNotes") as string[];
-    const pairingSuggestions = formData.get("pairingSuggestions") as string;
+        // Inventory
+        const quantity = parseInt(formData.get("quantity") as string) || 1;
+        const location = formData.get("location") as string;
 
-    // Image Handling
-    // Note: Vercel is a read-only environment. 
-    // Real persistence would require a cloud blob store (e.g. Vercel Blob, S3).
-    // For now, we skip local disk writes to prevent ENOENT errors.
-    const imagePath: string | undefined = undefined;
+        // Timeline
+        const drinkFrom = parseInt(formData.get("drinkFrom") as string) || undefined;
+        const drinkTo = parseInt(formData.get("drinkTo") as string) || undefined;
+        const boughtAt = formData.get("boughtAt") as string;
+        const boughtDate = formData.get("boughtDate") as string;
+        const price = parseFloat(formData.get("price") as string) || undefined;
 
-    // Destinations
-    const addToCellar = formData.get("addToCellar") === "on";
-    const addToWishlist = formData.get("addToWishlist") === "on";
-    const destinations: ("Cellar" | "Wishlist")[] = [];
-    if (addToCellar) destinations.push("Cellar");
-    if (addToWishlist) destinations.push("Wishlist");
+        // Review
+        const rating = parseFloat(formData.get("rating") as string) || undefined;
+        const tastingNotes = formData.getAll("tastingNotes") as string[];
+        const pairingSuggestions = formData.get("pairingSuggestions") as string;
 
-    if (destinations.length === 0) destinations.push("Cellar");
+        const imagePath: string | undefined = undefined;
 
-    await addWine({
-        name, producer, vintage, type, country, region, subRegion, grapes,
-        alcoholContent, bottleSize,
-        quantity, location,
-        drinkFrom, drinkTo, boughtAt, boughtDate, price,
-        rating, tastingNotes, pairingSuggestions,
-        image: imagePath,
-    }, destinations);
+        // Destinations
+        const addToCellar = formData.get("addToCellar") === "on";
+        const addToWishlist = formData.get("addToWishlist") === "on";
+        const destinations: ("Cellar" | "Wishlist")[] = [];
+        if (addToCellar) destinations.push("Cellar");
+        if (addToWishlist) destinations.push("Wishlist");
 
-    revalidatePath("/");
-    revalidatePath("/wishlist");
+        if (destinations.length === 0) destinations.push("Cellar");
 
-    redirect("/");
+        console.log(`[STRICT DEBUG] DESTINATIONS: ${destinations.join(", ")}`);
+
+        await addWine({
+            name, producer, vintage, type, country, region, subRegion, grapes,
+            alcoholContent, bottleSize,
+            quantity, location,
+            drinkFrom, drinkTo, boughtAt, boughtDate, price,
+            rating, tastingNotes, pairingSuggestions,
+            image: imagePath,
+        }, destinations);
+
+        console.log("[STRICT DEBUG] STORAGE COMPLETE");
+
+        revalidatePath("/");
+        revalidatePath("/cellar");
+        revalidatePath("/wishlist");
+
+        return { success: true };
+    } catch (error: any) {
+        console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        console.error("FATAL ACTION ERROR: createWine CRASHED");
+        console.error(`ERROR MESSAGE: ${error.message}`);
+        console.error(`ERROR STACK: ${error.stack}`);
+        console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        return { success: false, error: error.message };
+    }
 }
 
 export async function updateWineAction(id: string, formData: FormData, sheetTitle: "Cellar" | "Wishlist") {
-    const updates: Partial<Wine> = {};
+    try {
+        const updates: Partial<Wine> = {};
 
-    if (formData.has("quantity")) updates.quantity = parseInt(formData.get("quantity") as string);
-    if (formData.has("rating")) updates.rating = parseFloat(formData.get("rating") as string);
+        if (formData.has("quantity")) updates.quantity = parseInt(formData.get("quantity") as string);
+        if (formData.has("rating")) updates.rating = parseFloat(formData.get("rating") as string);
 
-    const tastingNotes = formData.getAll("tastingNotes") as string[];
-    if (tastingNotes.length > 0) updates.tastingNotes = tastingNotes;
+        const tastingNotes = formData.getAll("tastingNotes") as string[];
+        if (tastingNotes.length > 0) updates.tastingNotes = tastingNotes;
 
-    if (formData.has("name")) updates.name = formData.get("name") as string;
-    if (formData.has("producer")) updates.producer = formData.get("producer") as string;
-    if (formData.has("vintage")) updates.vintage = parseInt(formData.get("vintage") as string);
-    if (formData.has("location")) updates.location = formData.get("location") as string;
+        if (formData.has("name")) updates.name = formData.get("name") as string;
+        if (formData.has("producer")) updates.producer = formData.get("producer") as string;
+        if (formData.has("vintage")) updates.vintage = parseInt(formData.get("vintage") as string);
+        if (formData.has("location")) updates.location = formData.get("location") as string;
 
-    await updateWine(id, updates, sheetTitle);
-    revalidatePath("/");
-    revalidatePath("/wishlist");
+        await updateWine(id, updates, sheetTitle);
+        revalidatePath("/");
+        revalidatePath("/cellar");
+        revalidatePath("/wishlist");
+        return { success: true };
+    } catch (error: any) {
+        console.error("Update error:", error);
+        return { success: false, error: error.message };
+    }
 }
 
 export async function deleteWineAction(id: string, sheetTitle: "Cellar" | "Wishlist") {
-    await deleteWine(id, sheetTitle);
-    revalidatePath("/");
-    revalidatePath("/wishlist");
+    try {
+        await deleteWine(id, sheetTitle);
+        revalidatePath("/");
+        revalidatePath("/cellar");
+        revalidatePath("/wishlist");
+        return { success: true };
+    } catch (error: any) {
+        console.error("Delete error:", error);
+        return { success: false, error: error.message };
+    }
 }
