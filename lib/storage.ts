@@ -19,6 +19,8 @@ export async function getWines(sheetTitle: "Cellar" | "Wishlist"): Promise<Wine[
         const sheet = doc.sheetsByTitle[sheetTitle];
         if (!sheet) return [];
 
+        await sheet.loadHeaderRow();
+
         const rows = await sheet.getRows();
         return rows.map((row) => {
             // Parse array fields safely
@@ -92,6 +94,13 @@ export async function addWine(wine: Omit<Wine, "id" | "dateAdded">, destinations
 
             console.log(`[STRICT DEBUG] ATTEMPTING APPEND TO "${title}"...`);
             console.log(`[STRICT DEBUG] SHEET TITLE: "${sheet.title}"`);
+
+            // Explicitly load headers to avoid "Header values are not yet loaded"
+            try {
+                await sheet.loadHeaderRow();
+            } catch (e) {
+                console.log("[STRICT DEBUG] Could not load headers (Sheet might be empty)");
+            }
 
             // Log headers to see what we're working with
             const currentHeaders = sheet.headerValues || [];
