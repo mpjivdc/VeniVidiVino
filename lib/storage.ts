@@ -9,8 +9,8 @@ const HEADER_VALUES = [
     'alcoholContent', 'bottleSize',
     'quantity', 'location',
     'drinkFrom', 'drinkTo', 'boughtAt', 'boughtDate', 'price',
-    'rating', 'tastingNotes', 'pairingSuggestions',
-    'image', 'dateAdded'
+    'rating', 'tastingNotes', 'pairingSuggestions', 'dateAdded',
+    '', '', '', 'image' // Column Y is the 25th column
 ];
 
 export async function getWines(sheetTitle: "Cellar" | "Wishlist"): Promise<Wine[]> {
@@ -94,6 +94,7 @@ export async function addWine(wine: Omit<Wine, "id" | "dateAdded">, destinations
             await sheet.loadHeaderRow().catch(() => sheet.setHeaderRow(HEADER_VALUES));
 
             const rowArray = HEADER_VALUES.map(header => {
+                if (!header) return "";
                 const val = newWine[header];
                 return val !== undefined && val !== null ? val.toString() : "";
             });
@@ -138,7 +139,9 @@ export async function updateWine(id: string, updates: Partial<Wine>, sheetTitle:
         }
 
         Object.entries(serializedUpdates).forEach(([key, value]) => {
-            if (value !== undefined && value !== null) row.set(key, value.toString());
+            if (value !== undefined && value !== null && key !== "id") {
+                row.set(key, value.toString());
+            }
         });
         await row.save();
     }
