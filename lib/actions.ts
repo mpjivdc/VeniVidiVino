@@ -4,8 +4,6 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { addWine, deleteWine, updateWine } from "./storage";
 import { Wine, WineType } from "./types";
-import path from "path";
-import fs from "fs/promises";
 
 export async function createWine(formData: FormData) {
     // Identity
@@ -38,24 +36,11 @@ export async function createWine(formData: FormData) {
     const tastingNotes = formData.getAll("tastingNotes") as string[];
     const pairingSuggestions = formData.get("pairingSuggestions") as string;
 
-    // Image
-    const imageFile = formData.get("image") as File;
-    let imagePath: string | undefined = undefined;
-
-    if (imageFile && imageFile.size > 0 && imageFile.name !== "undefined") {
-        const buffer = Buffer.from(await imageFile.arrayBuffer());
-        const filename = `${crypto.randomUUID()}-${imageFile.name.replace(/[^a-zA-Z0-9.-]/g, "")}`;
-        const uploadDir = path.join(process.cwd(), "public/uploads");
-
-        try {
-            await fs.access(uploadDir);
-        } catch {
-            await fs.mkdir(uploadDir, { recursive: true });
-        }
-
-        await fs.writeFile(path.join(uploadDir, filename), buffer);
-        imagePath = `/uploads/${filename}`;
-    }
+    // Image Handling
+    // Note: Vercel is a read-only environment. 
+    // Real persistence would require a cloud blob store (e.g. Vercel Blob, S3).
+    // For now, we skip local disk writes to prevent ENOENT errors.
+    const imagePath: string | undefined = undefined;
 
     // Destinations
     const addToCellar = formData.get("addToCellar") === "on";
