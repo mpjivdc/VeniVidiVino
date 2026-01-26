@@ -10,7 +10,7 @@ const HEADER_VALUES = [
     'quantity', 'location',
     'drinkFrom', 'drinkTo', 'boughtAt', 'boughtDate', 'price',
     'rating', 'tastingNotes', 'pairingSuggestions',
-    'image', 'dateAdded'
+    'ImageData', 'dateAdded'
 ];
 
 export async function getWines(sheetTitle: "Cellar" | "Wishlist"): Promise<Wine[]> {
@@ -62,7 +62,7 @@ export async function getWines(sheetTitle: "Cellar" | "Wishlist"): Promise<Wine[
                 rating: parseFloat(row.get("rating")) || undefined,
                 tastingNotes,
                 pairingSuggestions: row.get("pairingSuggestions"),
-                image: row.get("image"),
+                image: row.get("ImageData"),
                 dateAdded: row.get("dateAdded"),
             }
         });
