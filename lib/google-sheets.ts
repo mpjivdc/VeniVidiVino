@@ -23,14 +23,10 @@ export async function getDoc() {
     try {
         const doc = new GoogleSpreadsheet(sheetId, serviceAccountAuth);
         await doc.loadInfo();
-        console.log(`[STRICT DEBUG] AUTH SUCCESS: Using Sheet ID "${sheetId}" (Title: "${doc.title}")`);
+        console.log(`[GoogleSheets] Connected to: ${doc.title}`);
         return doc;
     } catch (error: any) {
-        console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        console.error("FATAL GOOGLE SHEETS ERROR: COULD NOT CONNECT TO SPREADSHEET");
-        console.error(`ID ATTEMPTED: ${sheetId}`);
-        console.error(`ERROR MESSAGE: ${error.message}`);
-        console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        console.error(`[GoogleSheets] Connection Failed: ${error.message}`);
         throw error;
     }
 }

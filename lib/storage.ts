@@ -87,50 +87,24 @@ export async function addWine(wine: Omit<Wine, "id" | "dateAdded">, destinations
         for (const title of destinations) {
             let sheet = doc.sheetsByTitle[title];
             if (!sheet) {
-                console.log(`[STRICT DEBUG] Sheet "${title}" not found. Creating it...`);
                 sheet = await doc.addSheet({ headerValues: HEADER_VALUES, title });
             }
 
-            console.log(`[STRICT DEBUG] ATTEMPTING APPEND TO "${title}" (Sheet ID: ${sheet.sheetId})...`);
+            await sheet.loadHeaderRow().catch(() => sheet.setHeaderRow(HEADER_VALUES));
 
-            // Explicitly load headers to avoid "Header values are not yet loaded"
-            try {
-                await sheet.loadHeaderRow();
-            } catch (e) {
-                console.log("[STRICT DEBUG] Could not load headers (Sheet might be empty). Setting them now...");
-                await sheet.setHeaderRow(HEADER_VALUES);
-            }
-
-            const currentHeaders = sheet.headerValues || [];
-            console.log(`[STRICT DEBUG] CURRENT HEADERS: ${currentHeaders.join(", ")}`);
-
-            // Map the object to the header order to ENSURE it lands in the right columns
-            // This is safer than just passing the object if there's any header mismatch
             const rowArray = HEADER_VALUES.map(header => {
                 const val = newWine[header];
                 return val !== undefined && val !== null ? val.toString() : "";
             });
 
-            console.log(`[STRICT DEBUG] ROW ARRAY TO SEND: ${JSON.stringify(rowArray)}`);
-            console.log(`[STRICT DEBUG] ROW COUNT BEFORE: ${sheet.rowCount}`);
+            await sheet.addRow(rowArray);
 
-            // Use the array-based addRow for absolute precision
-            const addedRow = await sheet.addRow(rowArray);
-
-            console.log(`[STRICT DEBUG] SUCCESS: Row added to "${title}". ID: ${newWine.id}`);
-            console.log(`[STRICT DEBUG] ROW COUNT AFTER: ${sheet.rowCount}`);
-
-            // Force revalidation immediately
             revalidatePath("/cellar");
             revalidatePath("/wishlist");
             revalidatePath("/");
         }
     } catch (error: any) {
-        console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        console.error("FATAL STORAGE ERROR: FAILED TO ADD ROW TO SHEET");
-        console.error(`ERROR MESSAGE: ${error.message}`);
-        console.error(`STACK: ${error.stack}`);
-        console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        console.error(`[Storage] Save Failed: ${error.message}`);
         throw error;
     }
 }

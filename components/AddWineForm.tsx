@@ -177,14 +177,9 @@ export function AddWineForm() {
 
     async function onSubmit(values: FormValues) {
         setIsSubmitting(true)
-        console.log('Sending data to server (STRICT DEBUG MODE)...');
-        console.log('FORM VALUES:', values);
         const formData = new FormData()
 
         Object.entries(values).forEach(([key, value]) => {
-            // TEMPORARILY DISABLE TASTING NOTES AND DRINKING WINDOW LOGIC FOR TEST SCAN
-            if (key === 'tastingNotes' || key === 'drinkFrom' || key === 'drinkTo') return;
-
             if (key === 'rating' && Array.isArray(value)) {
                 formData.append(key, value[0].toString())
             } else if (key === 'tastingNotes' && Array.isArray(value)) {
@@ -203,17 +198,14 @@ export function AddWineForm() {
 
         try {
             const result = await createWine(formData)
-            console.log('Server response received:', result);
 
             if (result?.success) {
-                console.log('SUCCESS: Redirecting to cellar...');
                 router.push("/cellar");
             } else {
                 throw new Error(result?.error || "Unknown server error");
             }
         } catch (error: any) {
             console.error("Failed to add wine", error)
-            alert(`CRITICAL ERROR: Failed to add wine to Google Sheets.\n\nMessage: ${error.message || 'Unknown error'}\n\nPlease check Vercel logs.`);
             setIsSubmitting(false)
         }
     }
