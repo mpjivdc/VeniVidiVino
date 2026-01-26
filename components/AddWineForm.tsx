@@ -171,6 +171,7 @@ export function AddWineForm() {
             if (data.subRegion) form.setValue("subRegion", data.subRegion)
             if (data.country) form.setValue("country", data.country)
             if (data.grapes) form.setValue("grapes", Array.isArray(data.grapes) ? data.grapes.join(", ") : data.grapes)
+            if (data.alcohol) form.setValue("alcoholContent", data.alcohol.toString())
         } catch (error) {
             console.error("Scan error", error)
         } finally {

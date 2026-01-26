@@ -29,6 +29,8 @@ export async function POST(req: NextRequest) {
     - region: The region (e.g., Napa Valley, Bordeaux).
     - subRegion: The specific sub-region or AOC if visible (e.g., Bolgheri, Margaux).
     - country: The country of origin.
+    - grapes: An array of grape varieties mentioned on the label.
+    - alcohol: The alcohol percentage as a number (e.g., 14.5).
     
     Return ONLY raw valid JSON. Do not include markdown formatting or backticks.`;
 
