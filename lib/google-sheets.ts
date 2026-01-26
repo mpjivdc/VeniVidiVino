@@ -16,7 +16,10 @@ export async function getDoc() {
         scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
 
-    const doc = new GoogleSpreadsheet('1xbOaIsbnrxTMqc77L3QYnMXTiecMrT3PtQyn4aAlSOE', serviceAccountAuth);
+    const sheetId = process.env.GOOGLE_SHEET_ID || '1xbOaIsbnrxTMqc77L3QYnMXTiecMrT3PtQyn4aAlSOE';
+    console.log(`[GoogleSheets] Connecting to ID: ${sheetId}`);
+
+    const doc = new GoogleSpreadsheet(sheetId, serviceAccountAuth);
     await doc.loadInfo();
     console.log(`[GoogleSheets] Authenticated & loaded doc: ${doc.title}`);
     return doc;
