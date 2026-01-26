@@ -61,7 +61,7 @@ export async function createWine(formData: FormData) {
     }, destinations);
 
     revalidatePath("/");
-    if (addToWishlist) revalidatePath("/wishlist");
+    revalidatePath("/wishlist");
 
     redirect("/");
 }

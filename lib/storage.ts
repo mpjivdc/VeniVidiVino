@@ -84,11 +84,13 @@ export async function addWine(wine: Omit<Wine, "id" | "dateAdded">, destinations
     for (const title of destinations) {
         let sheet = doc.sheetsByTitle[title];
         if (!sheet) {
+            console.log(`[Storage] Sheet "${title}" not found. Creating it...`);
             sheet = await doc.addSheet({ headerValues: HEADER_VALUES, title });
         }
-        // Ensure headers exist/match if needed (skipping advanced header sync for speed, assuming sheet exists or created correctly)
 
+        console.log(`[Storage] Found sheet "${title}". Row count: ${sheet.rowCount}`);
         await sheet.addRow(newWine);
+        console.log(`[Storage] Successfully added row to "${title}" (ID: ${newWine.id})`);
     }
 }
 

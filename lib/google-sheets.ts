@@ -12,11 +12,12 @@ export async function getDoc() {
 
     const serviceAccountAuth = new JWT({
         email: credentials.client_email,
-        key: credentials.private_key,
+        key: credentials.private_key.replace(/\\n/g, '\n'),
         scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
 
     const doc = new GoogleSpreadsheet('1xbOaIsbnrxTMqc77L3QYnMXTiecMrT3PtQyn4aAlSOE', serviceAccountAuth);
     await doc.loadInfo();
+    console.log(`[GoogleSheets] Authenticated & loaded doc: ${doc.title}`);
     return doc;
 }
