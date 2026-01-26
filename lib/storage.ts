@@ -10,7 +10,7 @@ const HEADER_VALUES = [
     'quantity', 'location',
     'drinkFrom', 'drinkTo', 'boughtAt', 'boughtDate', 'price',
     'rating', 'tastingNotes', 'pairingSuggestions',
-    'ImageURL', 'dateAdded'
+    'image', 'dateAdded'
 ];
 
 export async function getWines(sheetTitle: "Cellar" | "Wishlist"): Promise<Wine[]> {
@@ -62,7 +62,7 @@ export async function getWines(sheetTitle: "Cellar" | "Wishlist"): Promise<Wine[
                 rating: parseFloat(row.get("rating")) || undefined,
                 tastingNotes,
                 pairingSuggestions: row.get("pairingSuggestions"),
-                image: row.get("ImageURL"),
+                image: row.get("image"),
                 dateAdded: row.get("dateAdded"),
             }
         });
@@ -77,7 +77,7 @@ export async function addWine(wine: Omit<Wine, "id" | "dateAdded">, destinations
 
     const newWine: any = {
         ...wine,
-        ImageURL: wine.image,
+        image: wine.image,
         id: crypto.randomUUID(),
         dateAdded: new Date().toISOString(),
         tastingNotes: JSON.stringify(wine.tastingNotes || []),
@@ -134,8 +134,7 @@ export async function updateWine(id: string, updates: Partial<Wine>, sheetTitle:
         if (updates.tastingNotes) serializedUpdates.tastingNotes = JSON.stringify(updates.tastingNotes);
         if (updates.grapes) serializedUpdates.grapes = JSON.stringify(updates.grapes);
         if (updates.image) {
-            serializedUpdates.ImageURL = updates.image;
-            delete serializedUpdates.image;
+            serializedUpdates.image = updates.image;
         }
 
         Object.entries(serializedUpdates).forEach(([key, value]) => {
