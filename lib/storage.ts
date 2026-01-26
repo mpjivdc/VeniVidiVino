@@ -75,11 +75,10 @@ export async function getWines(sheetTitle: "Cellar" | "Wishlist"): Promise<Wine[
 export async function addWine(wine: Omit<Wine, "id" | "dateAdded">, destinations: ("Cellar" | "Wishlist")[]): Promise<void> {
     const doc = await getDoc();
 
-    const newWine = {
+    const newWine: any = {
         ...wine,
         id: crypto.randomUUID(),
         dateAdded: new Date().toISOString(),
-        // Serialize arrays for Sheets
         tastingNotes: JSON.stringify(wine.tastingNotes || []),
         grapes: JSON.stringify(wine.grapes || []),
     };
@@ -92,36 +91,36 @@ export async function addWine(wine: Omit<Wine, "id" | "dateAdded">, destinations
                 sheet = await doc.addSheet({ headerValues: HEADER_VALUES, title });
             }
 
-            console.log(`[STRICT DEBUG] ATTEMPTING APPEND TO "${title}"...`);
-            console.log(`[STRICT DEBUG] SHEET TITLE: "${sheet.title}"`);
+            console.log(`[STRICT DEBUG] ATTEMPTING APPEND TO "${title}" (Sheet ID: ${sheet.sheetId})...`);
 
             // Explicitly load headers to avoid "Header values are not yet loaded"
             try {
                 await sheet.loadHeaderRow();
             } catch (e) {
-                console.log("[STRICT DEBUG] Could not load headers (Sheet might be empty)");
-            }
-
-            // Log headers to see what we're working with
-            const currentHeaders = sheet.headerValues || [];
-            console.log(`[STRICT DEBUG] CURRENT HEADERS: ${currentHeaders.join(", ")}`);
-            console.log(`[STRICT DEBUG] EXPECTED HEADERS: ${HEADER_VALUES.join(", ")}`);
-
-            if (currentHeaders.length === 0) {
-                console.log("[STRICT DEBUG] NO HEADERS FOUND! Setting headers now...");
+                console.log("[STRICT DEBUG] Could not load headers (Sheet might be empty). Setting them now...");
                 await sheet.setHeaderRow(HEADER_VALUES);
             }
 
-            console.log(`[STRICT DEBUG] ROW COUNT BEFORE: ${sheet.rowCount}`);
-            console.log(`[STRICT DEBUG] DATA: ${JSON.stringify(newWine.name)} (${newWine.vintage})`);
+            const currentHeaders = sheet.headerValues || [];
+            console.log(`[STRICT DEBUG] CURRENT HEADERS: ${currentHeaders.join(", ")}`);
 
-            const addedRow = await sheet.addRow(newWine);
+            // Map the object to the header order to ENSURE it lands in the right columns
+            // This is safer than just passing the object if there's any header mismatch
+            const rowArray = HEADER_VALUES.map(header => {
+                const val = newWine[header];
+                return val !== undefined && val !== null ? val.toString() : "";
+            });
+
+            console.log(`[STRICT DEBUG] ROW ARRAY TO SEND: ${JSON.stringify(rowArray)}`);
+            console.log(`[STRICT DEBUG] ROW COUNT BEFORE: ${sheet.rowCount}`);
+
+            // Use the array-based addRow for absolute precision
+            const addedRow = await sheet.addRow(rowArray);
 
             console.log(`[STRICT DEBUG] SUCCESS: Row added to "${title}". ID: ${newWine.id}`);
             console.log(`[STRICT DEBUG] ROW COUNT AFTER: ${sheet.rowCount}`);
 
             // Force revalidation immediately
-            console.log(`[STRICT DEBUG] FORCING REVALIDATION for /cellar and /wishlist`);
             revalidatePath("/cellar");
             revalidatePath("/wishlist");
             revalidatePath("/");
@@ -130,6 +129,7 @@ export async function addWine(wine: Omit<Wine, "id" | "dateAdded">, destinations
         console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         console.error("FATAL STORAGE ERROR: FAILED TO ADD ROW TO SHEET");
         console.error(`ERROR MESSAGE: ${error.message}`);
+        console.error(`STACK: ${error.stack}`);
         console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         throw error;
     }
@@ -140,6 +140,7 @@ export async function deleteWine(id: string, sheetTitle: "Cellar" | "Wishlist"):
     const sheet = doc.sheetsByTitle[sheetTitle];
     if (!sheet) return;
 
+    await sheet.loadHeaderRow();
     const rows = await sheet.getRows();
     const row = rows.find((r) => r.get("id") === id);
     if (row) await row.delete();
@@ -150,6 +151,7 @@ export async function updateWine(id: string, updates: Partial<Wine>, sheetTitle:
     const sheet = doc.sheetsByTitle[sheetTitle];
     if (!sheet) return;
 
+    await sheet.loadHeaderRow();
     const rows = await sheet.getRows();
     const row = rows.find((r) => r.get("id") === id);
     if (row) {
