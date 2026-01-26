@@ -91,11 +91,25 @@ export async function addWine(wine: Omit<Wine, "id" | "dateAdded">, destinations
             }
 
             console.log(`[STRICT DEBUG] ATTEMPTING APPEND TO "${title}"...`);
+            console.log(`[STRICT DEBUG] SHEET TITLE: "${sheet.title}"`);
+
+            // Log headers to see what we're working with
+            const currentHeaders = sheet.headerValues || [];
+            console.log(`[STRICT DEBUG] CURRENT HEADERS: ${currentHeaders.join(", ")}`);
+            console.log(`[STRICT DEBUG] EXPECTED HEADERS: ${HEADER_VALUES.join(", ")}`);
+
+            if (currentHeaders.length === 0) {
+                console.log("[STRICT DEBUG] NO HEADERS FOUND! Setting headers now...");
+                await sheet.setHeaderRow(HEADER_VALUES);
+            }
+
+            console.log(`[STRICT DEBUG] ROW COUNT BEFORE: ${sheet.rowCount}`);
             console.log(`[STRICT DEBUG] DATA: ${JSON.stringify(newWine.name)} (${newWine.vintage})`);
 
-            await sheet.addRow(newWine);
+            const addedRow = await sheet.addRow(newWine);
 
-            console.log(`[STRICT DEBUG] SUCCESS: Row added to "${title}" (ID: ${newWine.id})`);
+            console.log(`[STRICT DEBUG] SUCCESS: Row added to "${title}". ID: ${newWine.id}`);
+            console.log(`[STRICT DEBUG] ROW COUNT AFTER: ${sheet.rowCount}`);
 
             // Force revalidation immediately
             console.log(`[STRICT DEBUG] FORCING REVALIDATION for /cellar and /wishlist`);

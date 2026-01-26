@@ -205,6 +205,11 @@ export function AddWineForm() {
             await createWine(formData)
             console.log('Server response received: Wine should be in sheet now!');
         } catch (error: any) {
+            // Handle Next.js redirect error (it's actually success)
+            if (error.message?.includes("NEXT_REDIRECT")) {
+                router.push("/");
+                return;
+            }
             console.error("Failed to add wine", error)
             alert(`CRITICAL ERROR: Failed to add wine to Google Sheets.\n\nMessage: ${error.message || 'Unknown error'}\n\nPlease check Vercel logs.`);
             setIsSubmitting(false)
