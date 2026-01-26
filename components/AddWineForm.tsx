@@ -156,8 +156,9 @@ export function AddWineForm() {
         setIsScanning(true)
         try {
             const formData = new FormData()
-            formData.append("image", file)
+            console.log('Sending image to server for AI scan...');
             const response = await fetch("/api/upload", { method: "POST", body: formData })
+            console.log('Server response received!');
             if (!response.ok) throw new Error("Scan failed")
             const data = await response.json()
 
@@ -176,9 +177,14 @@ export function AddWineForm() {
 
     async function onSubmit(values: FormValues) {
         setIsSubmitting(true)
+        console.log('Sending data to server (STRICT DEBUG MODE)...');
+        console.log('FORM VALUES:', values);
         const formData = new FormData()
 
         Object.entries(values).forEach(([key, value]) => {
+            // TEMPORARILY DISABLE TASTING NOTES AND DRINKING WINDOW LOGIC FOR TEST SCAN
+            if (key === 'tastingNotes' || key === 'drinkFrom' || key === 'drinkTo') return;
+
             if (key === 'rating' && Array.isArray(value)) {
                 formData.append(key, value[0].toString())
             } else if (key === 'tastingNotes' && Array.isArray(value)) {
@@ -197,8 +203,10 @@ export function AddWineForm() {
 
         try {
             await createWine(formData)
-        } catch (error) {
+            console.log('Server response received: Wine should be in sheet now!');
+        } catch (error: any) {
             console.error("Failed to add wine", error)
+            alert(`CRITICAL ERROR: Failed to add wine to Google Sheets.\n\nMessage: ${error.message || 'Unknown error'}\n\nPlease check Vercel logs.`);
             setIsSubmitting(false)
         }
     }

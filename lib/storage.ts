@@ -2,6 +2,7 @@
 
 import { Wine } from "./types";
 import { getDoc } from "./google-sheets";
+import { revalidatePath } from "next/cache";
 
 const HEADER_VALUES = [
     'id', 'name', 'vintage', 'country', 'region', 'subRegion', 'type', 'grapes', 'producer',
@@ -81,16 +82,33 @@ export async function addWine(wine: Omit<Wine, "id" | "dateAdded">, destinations
         grapes: JSON.stringify(wine.grapes || []),
     };
 
-    for (const title of destinations) {
-        let sheet = doc.sheetsByTitle[title];
-        if (!sheet) {
-            console.log(`[Storage] Sheet "${title}" not found. Creating it...`);
-            sheet = await doc.addSheet({ headerValues: HEADER_VALUES, title });
-        }
+    try {
+        for (const title of destinations) {
+            let sheet = doc.sheetsByTitle[title];
+            if (!sheet) {
+                console.log(`[STRICT DEBUG] Sheet "${title}" not found. Creating it...`);
+                sheet = await doc.addSheet({ headerValues: HEADER_VALUES, title });
+            }
 
-        console.log(`[Storage] Found sheet "${title}". Row count: ${sheet.rowCount}`);
-        await sheet.addRow(newWine);
-        console.log(`[Storage] Successfully added row to "${title}" (ID: ${newWine.id})`);
+            console.log(`[STRICT DEBUG] ATTEMPTING APPEND TO "${title}"...`);
+            console.log(`[STRICT DEBUG] DATA: ${JSON.stringify(newWine.name)} (${newWine.vintage})`);
+
+            await sheet.addRow(newWine);
+
+            console.log(`[STRICT DEBUG] SUCCESS: Row added to "${title}" (ID: ${newWine.id})`);
+
+            // Force revalidation immediately
+            console.log(`[STRICT DEBUG] FORCING REVALIDATION for /cellar and /wishlist`);
+            revalidatePath("/cellar");
+            revalidatePath("/wishlist");
+            revalidatePath("/");
+        }
+    } catch (error: any) {
+        console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        console.error("FATAL STORAGE ERROR: FAILED TO ADD ROW TO SHEET");
+        console.error(`ERROR MESSAGE: ${error.message}`);
+        console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        throw error;
     }
 }
 

@@ -20,8 +20,17 @@ export async function getDoc() {
 
     console.log(`Connecting to Sheet ID: ${sheetId}`);
 
-    const doc = new GoogleSpreadsheet(sheetId, serviceAccountAuth);
-    await doc.loadInfo();
-    console.log(`[GoogleSheets] AUTH SUCCESS: Using Sheet ID "${sheetId}" (Title: "${doc.title}")`);
-    return doc;
+    try {
+        const doc = new GoogleSpreadsheet(sheetId, serviceAccountAuth);
+        await doc.loadInfo();
+        console.log(`[STRICT DEBUG] AUTH SUCCESS: Using Sheet ID "${sheetId}" (Title: "${doc.title}")`);
+        return doc;
+    } catch (error: any) {
+        console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        console.error("FATAL GOOGLE SHEETS ERROR: COULD NOT CONNECT TO SPREADSHEET");
+        console.error(`ID ATTEMPTED: ${sheetId}`);
+        console.error(`ERROR MESSAGE: ${error.message}`);
+        console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        throw error;
+    }
 }

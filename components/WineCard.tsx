@@ -24,8 +24,9 @@ export function WineCard({ wine, sheetTitle }: WineCardProps) {
 
     // Drinking Window Logic
     const currentYear = new Date().getFullYear()
-    let windowStatus: { color: string, label: string } | null = null
+    let windowStatus: any = null
 
+    /* TEMPORARILY DISABLED FOR STRICT DEBUG MODE
     if (wine.drinkFrom && wine.drinkTo) {
         if (currentYear < wine.drinkFrom) {
             windowStatus = { color: "bg-blue-500", label: "Too young" }
@@ -37,6 +38,7 @@ export function WineCard({ wine, sheetTitle }: WineCardProps) {
             windowStatus = { color: "bg-red-500", label: "Past peak" }
         }
     }
+    */
 
     return (
         <Drawer open={isOpen} onOpenChange={setIsOpen}>
