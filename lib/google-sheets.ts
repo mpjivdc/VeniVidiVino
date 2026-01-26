@@ -2,17 +2,21 @@ import { GoogleSpreadsheet } from 'google-spreadsheet';
 import { JWT } from 'google-auth-library';
 
 export async function getDoc() {
-    if (!process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || !process.env.GOOGLE_PRIVATE_KEY || !process.env.GOOGLE_SHEET_ID) {
-        throw new Error("Missing Google Sheets credentials in environment variables");
+    const credentialsJson = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
+
+    if (!credentialsJson) {
+        throw new Error("Missing GOOGLE_SERVICE_ACCOUNT_JSON environment variable");
     }
 
+    const credentials = JSON.parse(credentialsJson);
+
     const serviceAccountAuth = new JWT({
-        email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-        key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        email: credentials.client_email,
+        key: credentials.private_key,
         scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
 
-    const doc = new GoogleSpreadsheet(process.env.GOOGLE_SHEET_ID, serviceAccountAuth);
+    const doc = new GoogleSpreadsheet('1xbOaIsbnrxTMqc77L3QYnMXTiecMrT3PtQyn4aAlSOE', serviceAccountAuth);
     await doc.loadInfo();
     return doc;
 }

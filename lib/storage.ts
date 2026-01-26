@@ -1,91 +1,122 @@
 "use server"
 
-import { Wine, WishlistItem } from "./types";
+import { Wine } from "./types";
 import { getDoc } from "./google-sheets";
 
-export async function getWines(): Promise<Wine[]> {
+const HEADER_VALUES = [
+    'id', 'name', 'vintage', 'country', 'region', 'subRegion', 'type', 'grapes', 'producer',
+    'alcoholContent', 'bottleSize',
+    'quantity', 'location',
+    'drinkFrom', 'drinkTo', 'boughtAt', 'boughtDate', 'price',
+    'rating', 'tastingNotes', 'pairingSuggestions',
+    'image', 'dateAdded'
+];
+
+export async function getWines(sheetTitle: "Cellar" | "Wishlist"): Promise<Wine[]> {
     try {
         const doc = await getDoc();
-        const sheet = doc.sheetsByTitle["Cellar"];
+        const sheet = doc.sheetsByTitle[sheetTitle];
         if (!sheet) return [];
 
         const rows = await sheet.getRows();
-        return rows.map((row) => ({
-            id: row.get("id"),
-            name: row.get("name"),
-            producer: row.get("producer"),
-            year: parseInt(row.get("year")),
-            type: row.get("type") as any,
-            region: row.get("region"),
-            country: row.get("country"),
-            rating: parseFloat(row.get("rating")) || 0,
-            image: row.get("image"),
-            dateAdded: row.get("dateAdded"),
-            notes: row.get("notes"),
-        }));
+        return rows.map((row) => {
+            // Parse array fields safely
+            let tastingNotes: string[] = [];
+            try {
+                const rawNotes = row.get("tastingNotes");
+                if (rawNotes) tastingNotes = JSON.parse(rawNotes);
+            } catch {
+                tastingNotes = row.get("tastingNotes") ? [row.get("tastingNotes")] : [];
+            }
+
+            let grapes: string[] = [];
+            try {
+                const rawGrapes = row.get("grapes");
+                if (rawGrapes) grapes = JSON.parse(rawGrapes);
+            } catch {
+                grapes = row.get("grapes") ? [row.get("grapes")] : [];
+            }
+
+            return {
+                id: row.get("id"),
+                name: row.get("name"),
+                vintage: parseInt(row.get("vintage")) || new Date().getFullYear(),
+                country: row.get("country"),
+                region: row.get("region"),
+                subRegion: row.get("subRegion"),
+                type: row.get("type") as any,
+                grapes,
+                producer: row.get("producer"),
+                alcoholContent: parseFloat(row.get("alcoholContent")) || undefined,
+                bottleSize: row.get("bottleSize"),
+                quantity: parseInt(row.get("quantity")) || 1,
+                location: row.get("location"),
+                drinkFrom: parseInt(row.get("drinkFrom")) || undefined,
+                drinkTo: parseInt(row.get("drinkTo")) || undefined,
+                boughtAt: row.get("boughtAt"),
+                boughtDate: row.get("boughtDate"),
+                price: parseFloat(row.get("price")) || undefined,
+                rating: parseFloat(row.get("rating")) || undefined,
+                tastingNotes,
+                pairingSuggestions: row.get("pairingSuggestions"),
+                image: row.get("image"),
+                dateAdded: row.get("dateAdded"),
+            }
+        });
     } catch (error) {
-        console.error("Error fetching wines from Sheets:", error);
+        console.error(`Error fetching ${sheetTitle} from Sheets:`, error);
         return [];
     }
 }
 
-export async function addWine(wine: Omit<Wine, "id" | "dateAdded">): Promise<Wine> {
+export async function addWine(wine: Omit<Wine, "id" | "dateAdded">, destinations: ("Cellar" | "Wishlist")[]): Promise<void> {
     const doc = await getDoc();
-    let sheet = doc.sheetsByTitle["Cellar"];
 
-    // Create sheet if it doesn't exist (first run)
-    if (!sheet) {
-        sheet = await doc.addSheet({ headerValues: ['id', 'name', 'producer', 'year', 'type', 'region', 'country', 'rating', 'image', 'dateAdded', 'notes'], title: "Cellar" });
-    }
-
-    const newWine: Wine = {
+    const newWine = {
         ...wine,
         id: crypto.randomUUID(),
         dateAdded: new Date().toISOString(),
+        // Serialize arrays for Sheets
+        tastingNotes: JSON.stringify(wine.tastingNotes || []),
+        grapes: JSON.stringify(wine.grapes || []),
     };
 
-    await sheet.addRow({
-        id: newWine.id,
-        name: newWine.name,
-        producer: newWine.producer,
-        year: newWine.year,
-        type: newWine.type,
-        region: newWine.region || "",
-        country: newWine.country || "",
-        rating: newWine.rating || 0,
-        image: newWine.image || "",
-        dateAdded: newWine.dateAdded,
-        notes: newWine.notes || "",
-    });
+    for (const title of destinations) {
+        let sheet = doc.sheetsByTitle[title];
+        if (!sheet) {
+            sheet = await doc.addSheet({ headerValues: HEADER_VALUES, title });
+        }
+        // Ensure headers exist/match if needed (skipping advanced header sync for speed, assuming sheet exists or created correctly)
 
-    return newWine;
-}
-
-export async function getWishlist(): Promise<WishlistItem[]> {
-    try {
-        const doc = await getDoc();
-        const sheet = doc.sheetsByTitle["Wishlist"];
-        if (!sheet) return [];
-
-        const rows = await sheet.getRows();
-        return rows.map((row) => ({
-            id: row.get("id"),
-            name: row.get("name"),
-            producer: row.get("producer"),
-            notes: row.get("notes"),
-        }));
-    } catch (error) {
-        console.error("Error fetching wishlist:", error);
-        return [];
+        await sheet.addRow(newWine);
     }
 }
 
-export async function deleteWine(id: string): Promise<void> {
+export async function deleteWine(id: string, sheetTitle: "Cellar" | "Wishlist"): Promise<void> {
     const doc = await getDoc();
-    const sheet = doc.sheetsByTitle["Cellar"];
+    const sheet = doc.sheetsByTitle[sheetTitle];
     if (!sheet) return;
 
     const rows = await sheet.getRows();
     const row = rows.find((r) => r.get("id") === id);
     if (row) await row.delete();
+}
+
+export async function updateWine(id: string, updates: Partial<Wine>, sheetTitle: "Cellar" | "Wishlist"): Promise<void> {
+    const doc = await getDoc();
+    const sheet = doc.sheetsByTitle[sheetTitle];
+    if (!sheet) return;
+
+    const rows = await sheet.getRows();
+    const row = rows.find((r) => r.get("id") === id);
+    if (row) {
+        const serializedUpdates: any = { ...updates };
+        if (updates.tastingNotes) serializedUpdates.tastingNotes = JSON.stringify(updates.tastingNotes);
+        if (updates.grapes) serializedUpdates.grapes = JSON.stringify(updates.grapes);
+
+        Object.entries(serializedUpdates).forEach(([key, value]) => {
+            if (value !== undefined && value !== null) row.set(key, value.toString());
+        });
+        await row.save();
+    }
 }

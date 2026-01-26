@@ -4,7 +4,7 @@ import { WineCard } from "@/components/WineCard";
 
 
 export default async function Home() {
-  const wines = await getWines();
+  const wines = await getWines("Cellar");
 
   return (
     <div className="container mx-auto px-4 py-6">
@@ -21,7 +21,7 @@ export default async function Home() {
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {wines.map((wine) => (
-            <WineCard key={wine.id} wine={wine} />
+            <WineCard key={wine.id} wine={wine} sheetTitle="Cellar" />
           ))}
         </div>
       )}

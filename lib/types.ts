@@ -1,22 +1,39 @@
-export type WineType = "Red" | "White" | "Rose" | "Sparkling" | "Dessert" | "Fortified";
+export type WineType = "Red" | "White" | "Rose" | "Sparkling" | "Dessert" | "Fortified" | "Orange" | "Other";
 
 export interface Wine {
     id: string;
+    // Identity
     name: string;
-    producer: string;
-    year: number;
+    vintage: number;
+    country: string;
+    region: string;
+    subRegion?: string;
     type: WineType;
-    region?: string;
-    country?: string;
-    rating?: number; // 0-5
-    image?: string; // base64 or path
+    grapes?: string[];
+    producer: string;
+
+    // Specs
+    alcoholContent?: number;
+    bottleSize?: string; // e.g. "750ml"
+
+    // Inventory
+    quantity: number;
+    location?: string;
+
+    // Timeline
+    drinkFrom?: number; // Year
+    drinkTo?: number;   // Year
+    boughtAt?: string;
+    boughtDate?: string;
+    price?: number;
+
+    // Review
+    rating?: number;
+    tastingNotes?: string[]; // Multi-select
+    pairingSuggestions?: string;
+
+    image?: string;
     dateAdded: string;
-    notes?: string;
 }
 
-export interface WishlistItem {
-    id: string;
-    name: string;
-    producer?: string;
-    notes?: string;
-}
+export interface WishlistItem extends Wine { } // Now they share structure
