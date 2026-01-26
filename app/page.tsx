@@ -1,7 +1,7 @@
+export const dynamic = 'force-dynamic';
 import { getWines } from "@/lib/storage";
 import { WineCard } from "@/components/WineCard";
 
-export const dynamic = 'force-dynamic';
 
 export default async function Home() {
   const wines = await getWines();
