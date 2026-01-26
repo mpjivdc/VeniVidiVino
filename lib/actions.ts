@@ -18,8 +18,6 @@ export async function createWine(formData: FormData) {
         const subRegion = formData.get("subRegion") as string;
         const grapes = formData.getAll("grapes") as string[];
 
-        console.log(`[STRICT DEBUG] PARSED DATA: ${name} by ${producer} (${vintage})`);
-
         // Specs
         const alcoholContent = parseFloat(formData.get("alcoholContent") as string) || undefined;
         const bottleSize = formData.get("bottleSize") as string;
@@ -40,7 +38,23 @@ export async function createWine(formData: FormData) {
         const tastingNotes = formData.getAll("tastingNotes") as string[];
         const pairingSuggestions = formData.get("pairingSuggestions") as string;
 
-        const imagePath: string | undefined = undefined;
+        // Image Handling (Base64 for Google Sheets)
+        let imagePath: string | undefined = undefined;
+        const imageFile = formData.get("image") as File;
+        if (imageFile && imageFile.size > 0 && imageFile.name !== "undefined") {
+            try {
+                const buffer = Buffer.from(await imageFile.arrayBuffer());
+                // We must keep this small to fit in a Google Sheets cell (50k limit)
+                // In a real app, use Vercel Blob or S3.
+                imagePath = `data:${imageFile.type};base64,${buffer.toString("base64")}`;
+                if (imagePath.length > 45000) {
+                    console.log("[STRICT DEBUG] Image too large for Sheets cell, trimming...");
+                    imagePath = undefined; // Drop if too big to avoid API error
+                }
+            } catch (e) {
+                console.error("[STRICT DEBUG] Image conversion failed", e);
+            }
+        }
 
         // Destinations
         const addToCellar = formData.get("addToCellar") === "on";
@@ -51,7 +65,7 @@ export async function createWine(formData: FormData) {
 
         if (destinations.length === 0) destinations.push("Cellar");
 
-        console.log(`[STRICT DEBUG] DESTINATIONS: ${destinations.join(", ")}`);
+        console.log(`[STRICT DEBUG] SAVING: ${name} | ${producer} | ${region} | Destinations: ${destinations.join(", ")}`);
 
         await addWine({
             name, producer, vintage, type, country, region, subRegion, grapes,
@@ -62,8 +76,6 @@ export async function createWine(formData: FormData) {
             image: imagePath,
         }, destinations);
 
-        console.log("[STRICT DEBUG] STORAGE COMPLETE");
-
         revalidatePath("/");
         revalidatePath("/cellar");
         revalidatePath("/wishlist");
@@ -73,7 +85,6 @@ export async function createWine(formData: FormData) {
         console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         console.error("FATAL ACTION ERROR: createWine CRASHED");
         console.error(`ERROR MESSAGE: ${error.message}`);
-        console.error(`ERROR STACK: ${error.stack}`);
         console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         return { success: false, error: error.message };
     }

@@ -167,7 +167,9 @@ export function AddWineForm() {
             if (data.year) form.setValue("vintage", data.year.toString())
             if (data.type && wineTypes.includes(data.type)) form.setValue("type", data.type)
             if (data.region) form.setValue("region", data.region)
+            if (data.subRegion) form.setValue("subRegion", data.subRegion)
             if (data.country) form.setValue("country", data.country)
+            if (data.grapes) form.setValue("grapes", Array.isArray(data.grapes) ? data.grapes.join(", ") : data.grapes)
         } catch (error) {
             console.error("Scan error", error)
         } finally {

@@ -60,11 +60,10 @@ export function WineCard({ wine, sheetTitle }: WineCardProps) {
                     <CardContent className="p-0 flex h-32">
                         <div className="w-24 relative bg-muted shrink-0">
                             {wine.image ? (
-                                <Image
+                                <img
                                     src={wine.image}
                                     alt={wine.name}
-                                    fill
-                                    className="object-cover"
+                                    className="object-cover w-full h-full"
                                 />
                             ) : (
                                 <div className="flex h-full items-center justify-center text-muted-foreground text-xs p-2 text-center">

@@ -19,18 +19,20 @@ export async function POST(req: NextRequest) {
         const buffer = Buffer.from(await file.arrayBuffer());
         const base64Image = buffer.toString("base64");
 
-        const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
         const prompt = `Analyze this wine label image and extract the following details in JSON format:
     - name: The name of the wine.
     - producer: The producer/winery name.
     - year: The vintage year (number). If not found, use current year.
-    - type: One of "Red", "White", "Rose", "Sparkling", "Dessert", "Fortified". Infer from color or grape if possible. Default to "Red".
+    - type: One of "Red", "White", "Rose", "Sparkling", "Dessert", "Fortified", "Orange", "Other". Infer from color or grape if possible. Default to "Red".
     - region: The region (e.g., Napa Valley, Bordeaux).
+    - subRegion: The specific sub-region or AOC if visible (e.g., Bolgheri, Margaux).
     - country: The country of origin.
     
-    Return ONLY raw JSON, no markdown formatting.`;
+    Return ONLY raw valid JSON. Do not include markdown formatting or backticks.`;
 
+        console.log("[AI Scan] Sending image to Gemini...");
         const result = await model.generateContent([
             prompt,
             {
@@ -43,14 +45,21 @@ export async function POST(req: NextRequest) {
 
         const response = await result.response;
         const text = response.text();
+        console.log(`[AI Scan] Raw Response: ${text}`);
 
-        // Clean up potential markdown code blocks
-        const jsonString = text.replace(/```json/g, "").replace(/```/g, "").trim();
-        const data = JSON.parse(jsonString);
+        // Clean up potential markdown code blocks or whitespace
+        const jsonString = text.replace(/```json/g, "").replace(/```/g, "").replace(/^`|`$/g, "").trim();
 
-        return NextResponse.json(data);
-    } catch (error) {
-        console.error("Analysis failed:", error);
-        return NextResponse.json({ error: "Failed to analyze image" }, { status: 500 });
+        try {
+            const data = JSON.parse(jsonString);
+            console.log(`[AI Scan] Parsed Success: ${data.name}`);
+            return NextResponse.json(data);
+        } catch (e) {
+            console.error(`[AI Scan] JSON Parse Error: ${jsonString}`);
+            throw new Error("Invalid AI response format");
+        }
+    } catch (error: any) {
+        console.error("[AI Scan] FATAL ERROR:", error.message);
+        return NextResponse.json({ error: `Analysis failed: ${error.message}` }, { status: 500 });
     }
 }
