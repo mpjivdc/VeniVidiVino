@@ -91,10 +91,12 @@ export async function POST(req: NextRequest) {
             }
         }
 
-        throw lastError || new Error("All models failed to generate a valid response.");
+        console.warn("[AI Scan] All models failed or were blocked. Bypassing AI failure for manual user entry.");
+        return NextResponse.json({ _error: "Bypassed" });
 
     } catch (error: any) {
         console.error("[AI Scan] FATAL ERROR:", error.message);
-        return NextResponse.json({ error: `Analysis failed: ${error.message}` }, { status: 500 });
+        // Even in fatal error, return empty object to allow manual entry
+        return NextResponse.json({ _error: error.message });
     }
 }
