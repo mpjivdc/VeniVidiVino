@@ -7,8 +7,7 @@ import { revalidatePath } from "next/cache";
 const HEADER_VALUES = [
     'name', 'vintage', 'country', 'region', 'subRegion', 'type', 'grapes', 'alcoholContent', 'bottleSize',
     'quantity', 'location', 'drinkFrom', 'drinkTo', 'rating', 'price', 'boughtAt', 'boughtDate', 'tastingNotes',
-    'pairingSuggestions', 'id', 'producer', 'dateAdded',
-    '', '', 'image' // Column Y is the 25th column (index 24)
+    'pairingSuggestions', 'status', 'createdAt', 'updatedAt', 'userId', 'notes', 'image', 'producer'
 ];
 
 export async function getWines(sheetTitle: "Cellar" | "Wishlist"): Promise<Wine[]> {
