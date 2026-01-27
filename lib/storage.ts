@@ -5,10 +5,10 @@ import { getDoc } from "./google-sheets";
 import { revalidatePath } from "next/cache";
 
 const HEADER_VALUES = [
-    'name', 'vintage', 'country', 'region', 'subRegion', 'type', 'grapes', 'alcoholContent', 'producer',
-    'bottleSize', 'quantity', 'drinkFrom', 'drinkTo', 'location', 'boughtAt', 'boughtDate', 'price', 'rating',
-    'tastingNotes', 'pairingSuggestions', 'id', 'dateAdded',
-    '', '', 'image' // Column Y is the 25th column
+    'name', 'vintage', 'country', 'region', 'subRegion', 'type', 'grapes', 'alcoholContent', 'bottleSize',
+    'quantity', 'location', 'drinkFrom', 'drinkTo', 'rating', 'price', 'boughtAt', 'boughtDate', 'tastingNotes',
+    'pairingSuggestions', 'id', 'producer', 'dateAdded',
+    '', '', 'image' // Column Y is the 25th column (index 24)
 ];
 
 export async function getWines(sheetTitle: "Cellar" | "Wishlist"): Promise<Wine[]> {
@@ -86,10 +86,11 @@ export async function addWine(wine: Omit<Wine, "id" | "dateAdded">, destinations
         for (const title of destinations) {
             let sheet = doc.sheetsByTitle[title];
             if (!sheet) {
-                // Column Y is the 25th column, so we need to ensure HEADER_VALUES has 25 elements or pad
+                // We create the sheet with our strict 25-column header set
                 sheet = await doc.addSheet({ headerValues: HEADER_VALUES, title });
             }
 
+            // Always ensure headers match our definition exactly to prevent shifting
             await sheet.loadHeaderRow().catch(() => sheet.setHeaderRow(HEADER_VALUES));
 
             const rowArray = HEADER_VALUES.map(header => {
