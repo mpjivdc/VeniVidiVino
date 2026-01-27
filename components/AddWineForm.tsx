@@ -79,7 +79,7 @@ const formSchema = z.object({
     addToWishlist: z.boolean().default(false),
 })
 
-const compressImage = (file: File, maxWidth = 400, quality = 0.5): Promise<File> => {
+const compressImage = (file: File, maxWidth = 200, quality = 0.4): Promise<File> => {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.readAsDataURL(file);
@@ -101,7 +101,7 @@ const compressImage = (file: File, maxWidth = 400, quality = 0.5): Promise<File>
                 const ctx = canvas.getContext("2d");
                 if (ctx) {
                     ctx.imageSmoothingEnabled = true;
-                    ctx.imageSmoothingQuality = 'high';
+                    ctx.imageSmoothingQuality = 'medium';
                     ctx.drawImage(img, 0, 0, width, height);
                 }
 
@@ -208,7 +208,19 @@ export function AddWineForm() {
             }
         })
 
-        if (selectedImage) formData.append("image", selectedImage)
+        if (selectedImage) {
+            formData.append("image", selectedImage);
+            try {
+                const reader = new FileReader();
+                reader.readAsDataURL(selectedImage);
+                reader.onloadend = () => {
+                    const base64 = reader.result as string;
+                    if (typeof window !== "undefined") {
+                        alert('Base64 generated: ' + base64.substring(0, 30) + '... (Length: ' + base64.length + ')');
+                    }
+                };
+            } catch (e) { }
+        }
 
         try {
             const result = await createWine(formData)
