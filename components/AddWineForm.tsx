@@ -190,10 +190,7 @@ export function AddWineForm() {
     }
 
     async function onSubmit(values: FormValues) {
-        if (typeof window !== "undefined") {
-            window.alert('Saving collection data... Starting 15s safeguard timer.');
-        }
-
+        console.log('Saving collection data...');
         setIsSubmitting(true)
 
         // 15-second timeout safeguard for mobile uploads
@@ -245,13 +242,6 @@ export function AddWineForm() {
             router.push("/cellar");
         } catch (error: any) {
             console.error("Save failed", error)
-            if (typeof window !== "undefined") {
-                if (error.message === "SAVE_TIMEOUT") {
-                    window.alert('Upload took too long (>15s). Please check your internet and try again.');
-                } else {
-                    window.alert('Save error: ' + error.message);
-                }
-            }
         } finally {
             setIsSubmitting(false)
         }

@@ -54,11 +54,10 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
             if (result?.success) {
                 setIsEditing(false)
             } else {
-                alert(`Update failed: ${result?.error || "Unknown error"}`)
+                console.error(`Update failed: ${result?.error || "Unknown error"}`)
             }
         } catch (error: any) {
             console.error("Save error", error)
-            alert(`Critical error during save: ${error.message}`)
         } finally {
             setIsSaving(false)
         }
@@ -72,12 +71,11 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
             if (result?.success) {
                 onClose()
             } else {
-                alert(`Delete failed: ${result?.error || "Unknown error"}`)
+                console.error(`Delete failed: ${result?.error || "Unknown error"}`)
                 setIsDeleting(false)
             }
         } catch (error: any) {
             console.error("Delete error", error)
-            alert(`Critical error during delete: ${error.message}`)
             setIsDeleting(false)
         }
     }
