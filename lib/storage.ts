@@ -5,10 +5,21 @@ import { getDoc } from "./google-sheets";
 import { revalidatePath } from "next/cache";
 
 const HEADER_VALUES = [
-    'name', 'vintage', 'country', 'region', 'subRegion', 'type', 'grapes', 'alcoholContent', 'bottleSize',
-    'quantity', 'location', 'drinkFrom', 'drinkTo', 'rating', 'price', 'boughtAt', 'boughtDate', 'tastingNotes',
-    'pairingSuggestions', 'status', 'createdAt', 'updatedAt', 'userId', 'notes', 'image', 'producer'
+    'Name', 'Vintage', 'Country', 'Region', 'Sub-region', 'Type', 'Grapes', 'Alcohol%', 'Bottle Size',
+    'Quantity', 'Location', 'Drink From', 'Drink To', 'Rating', 'Price', 'Bought At', 'Bought Date', 'Tasting Notes',
+    'Pairing', 'Status', 'CreatedAt', 'UpdatedAt', 'UserId', 'Notes', 'Image'
 ];
+
+// Map internal Wine keys to Sheet Header names
+const KEY_TO_HEADER: Record<string, string> = {
+    name: 'Name', vintage: 'Vintage', country: 'Country', region: 'Region', subRegion: 'Sub-region',
+    type: 'Type', grapes: 'Grapes', alcoholContent: 'Alcohol%', bottleSize: 'Bottle Size',
+    quantity: 'Quantity', location: 'Location', drinkFrom: 'Drink From', drinkTo: 'Drink To',
+    rating: 'Rating', price: 'Price', boughtAt: 'Bought At', boughtDate: 'Bought Date',
+    tastingNotes: 'Tasting Notes', pairingSuggestions: 'Pairing',
+    status: 'Status', createdAt: 'CreatedAt', updatedAt: 'UpdatedAt',
+    userId: 'UserId', notes: 'Notes', image: 'Image'
+};
 
 export async function getWines(sheetTitle: "Cellar" | "Wishlist"): Promise<Wine[]> {
     try {
@@ -38,34 +49,34 @@ export async function getWines(sheetTitle: "Cellar" | "Wishlist"): Promise<Wine[
             }
 
             return {
-                id: row.get("status") || row.get("id"), // Use status as ID if present
-                name: row.get("name"),
-                vintage: parseInt(row.get("vintage")) || new Date().getFullYear(),
-                country: row.get("country"),
-                region: row.get("region"),
-                subRegion: row.get("subRegion"),
-                type: row.get("type") as any,
+                id: row.get("Status") || row.get("Name"), // Fallback for ID
+                name: row.get("Name"),
+                vintage: parseInt(row.get("Vintage")) || new Date().getFullYear(),
+                country: row.get("Country"),
+                region: row.get("Region"),
+                subRegion: row.get("Sub-region"),
+                type: row.get("Type") as any,
                 grapes,
-                producer: row.get("producer"),
-                alcoholContent: parseFloat(row.get("alcoholContent")) || undefined,
-                bottleSize: row.get("bottleSize"),
-                quantity: parseInt(row.get("quantity")) || 1,
-                location: row.get("location"),
-                drinkFrom: parseInt(row.get("drinkFrom")) || undefined,
-                drinkTo: parseInt(row.get("drinkTo")) || undefined,
-                boughtAt: row.get("boughtAt"),
-                boughtDate: row.get("boughtDate"),
-                price: parseFloat(row.get("price")) || undefined,
-                rating: parseFloat(row.get("rating")) || undefined,
+                producer: row.get("Producer") || "",
+                alcoholContent: parseFloat(row.get("Alcohol%")) || undefined,
+                bottleSize: row.get("Bottle Size"),
+                quantity: parseInt(row.get("Quantity")) || 1,
+                location: row.get("Location"),
+                drinkFrom: parseInt(row.get("Drink From")) || undefined,
+                drinkTo: parseInt(row.get("Drink To")) || undefined,
+                boughtAt: row.get("Bought At"),
+                boughtDate: row.get("Bought Date"),
+                price: parseFloat(row.get("Price")) || undefined,
+                rating: parseFloat(row.get("Rating")) || undefined,
                 tastingNotes,
-                pairingSuggestions: row.get("pairingSuggestions"),
-                image: row.get("image"),
-                dateAdded: row.get("createdAt") || row.get("dateAdded"),
-                status: row.get("status"),
-                createdAt: row.get("createdAt"),
-                updatedAt: row.get("updatedAt"),
-                userId: row.get("userId"),
-                notes: row.get("notes"),
+                pairingSuggestions: row.get("Pairing"),
+                image: row.get("Image"),
+                dateAdded: row.get("CreatedAt"),
+                status: row.get("Status"),
+                createdAt: row.get("CreatedAt"),
+                updatedAt: row.get("UpdatedAt"),
+                userId: row.get("UserId"),
+                notes: row.get("Notes"),
             }
         });
     } catch (error) {
@@ -95,20 +106,19 @@ export async function addWine(wine: Omit<Wine, "id" | "dateAdded">, destinations
         for (const title of destinations) {
             let sheet = doc.sheetsByTitle[title];
             if (!sheet) {
-                // We create the sheet with our strict 25-column header set
                 sheet = await doc.addSheet({ headerValues: HEADER_VALUES, title });
             }
 
-            // Always ensure headers match our definition exactly to prevent shifting
-            await sheet.loadHeaderRow().catch(() => sheet.setHeaderRow(HEADER_VALUES));
-
-            const rowArray = HEADER_VALUES.map(header => {
-                if (!header) return "";
-                const val = newWine[header];
-                return val !== undefined && val !== null ? val.toString() : "";
+            // Object-based append to guarantee column alignment
+            const rowData: Record<string, string> = {};
+            Object.entries(newWine).forEach(([key, val]) => {
+                const header = KEY_TO_HEADER[key];
+                if (header) {
+                    rowData[header] = val !== undefined && val !== null ? val.toString() : "";
+                }
             });
 
-            await sheet.addRow(rowArray);
+            await sheet.addRow(rowData);
 
             revalidatePath("/cellar");
             revalidatePath("/wishlist");
