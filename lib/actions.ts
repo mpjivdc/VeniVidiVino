@@ -66,7 +66,9 @@ export async function createWine(formData: FormData) {
         if (destinations.length === 0) destinations.push("Cellar");
 
         if (imagePath) {
-            console.log(`[Storage] Sending Base64 string to Column Y. Length: ${imagePath.length} characters`);
+            console.log(`[Storage] Image detected, mapping to Column Y. Length: ${imagePath.length} characters`);
+        } else {
+            console.log(`[Storage] No image detected, sending empty string to Column Y.`);
         }
         console.log(`[STRICT DEBUG] SAVING: ${name} | ${producer} | ${region} | Destinations: ${destinations.join(", ")}`);
 

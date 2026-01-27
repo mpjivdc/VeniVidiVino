@@ -190,6 +190,9 @@ export function AddWineForm() {
     }
 
     async function onSubmit(values: FormValues) {
+        if (typeof window !== "undefined") {
+            window.alert('Saving image data... Please wait for confirmation.');
+        }
         setIsSubmitting(true)
         const formData = new FormData()
 
@@ -210,16 +213,9 @@ export function AddWineForm() {
 
         if (selectedImage) {
             formData.append("image", selectedImage);
-            try {
-                const reader = new FileReader();
-                reader.readAsDataURL(selectedImage);
-                reader.onloadend = () => {
-                    const base64 = reader.result as string;
-                    if (typeof window !== "undefined") {
-                        alert('Base64 generated: ' + base64.substring(0, 30) + '... (Length: ' + base64.length + ')');
-                    }
-                };
-            } catch (e) { }
+        } else {
+            // Explicitly send empty string if no image to prevent column shifting
+            formData.append("image", "");
         }
 
         try {
@@ -455,7 +451,7 @@ export function AddWineForm() {
                     </div>
 
                     <Button type="submit" className="w-full py-7 text-xl font-bold rounded-2xl shadow-lg border-b-4 border-primary-foreground/20 active:border-b-0 active:translate-y-1" disabled={isSubmitting}>
-                        {isSubmitting ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> SAVING...</> : "SAVE TO COLLECTION"}
+                        {isSubmitting ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> SAVING TO COLLECTION...</> : "SAVE TO COLLECTION"}
                     </Button>
                 </form>
             </Form>
