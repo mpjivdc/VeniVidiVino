@@ -54,6 +54,7 @@ export async function POST(req: NextRequest) {
 
         try {
             const data = JSON.parse(jsonString);
+            console.log(`[AI Raw Output] ${JSON.stringify(data)}`);
             console.log(`[AI Scan] Parsed Success: ${data.name}`);
             return NextResponse.json(data);
         } catch (e) {
