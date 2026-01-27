@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
         const base64Image = buffer.toString("base64");
         console.log("[AI Scan] Image parsed successfully.");
 
-        const modelsToTry = ["gemini-3-flash", "gemini-2.5-flash"];
+        const modelsToTry = ["gemini-3-flash", "gemini-2.0-flash"];
         let lastError = null;
 
         for (const modelName of modelsToTry) {
