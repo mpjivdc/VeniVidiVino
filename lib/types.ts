@@ -34,6 +34,13 @@ export interface Wine {
 
     image?: string;
     dateAdded: string;
+
+    // Final A-Y Alignment Fields
+    status?: string;
+    createdAt?: string;
+    updatedAt?: string;
+    userId?: string;
+    notes?: string;
 }
 
 export interface WishlistItem extends Wine { } // Now they share structure

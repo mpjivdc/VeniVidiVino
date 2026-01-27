@@ -39,7 +39,7 @@ export async function getWines(sheetTitle: "Cellar" | "Wishlist"): Promise<Wine[
             }
 
             return {
-                id: row.get("id"),
+                id: row.get("status") || row.get("id"), // Use status as ID if present
                 name: row.get("name"),
                 vintage: parseInt(row.get("vintage")) || new Date().getFullYear(),
                 country: row.get("country"),
@@ -61,7 +61,12 @@ export async function getWines(sheetTitle: "Cellar" | "Wishlist"): Promise<Wine[
                 tastingNotes,
                 pairingSuggestions: row.get("pairingSuggestions"),
                 image: row.get("image"),
-                dateAdded: row.get("dateAdded"),
+                dateAdded: row.get("createdAt") || row.get("dateAdded"),
+                status: row.get("status"),
+                createdAt: row.get("createdAt"),
+                updatedAt: row.get("updatedAt"),
+                userId: row.get("userId"),
+                notes: row.get("notes"),
             }
         });
     } catch (error) {
@@ -73,11 +78,16 @@ export async function getWines(sheetTitle: "Cellar" | "Wishlist"): Promise<Wine[
 export async function addWine(wine: Omit<Wine, "id" | "dateAdded">, destinations: ("Cellar" | "Wishlist")[]): Promise<void> {
     const doc = await getDoc();
 
+    const id = crypto.randomUUID();
+    const now = new Date().toISOString();
     const newWine: any = {
         ...wine,
         image: wine.image,
-        id: crypto.randomUUID(),
-        dateAdded: new Date().toISOString(),
+        status: id, // Use status as UUID storage
+        createdAt: now,
+        updatedAt: now,
+        id: id,
+        dateAdded: now,
         tastingNotes: JSON.stringify(wine.tastingNotes || []),
         grapes: JSON.stringify(wine.grapes || []),
     };
