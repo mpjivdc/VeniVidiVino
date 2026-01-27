@@ -65,6 +65,9 @@ export async function createWine(formData: FormData) {
 
         if (destinations.length === 0) destinations.push("Cellar");
 
+        if (imagePath) {
+            console.log(`[STRICT DEBUG] Final Base64 Length: ${imagePath.length} characters`);
+        }
         console.log(`[STRICT DEBUG] SAVING: ${name} | ${producer} | ${region} | Destinations: ${destinations.join(", ")}`);
 
         await addWine({

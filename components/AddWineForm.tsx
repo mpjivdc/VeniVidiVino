@@ -79,7 +79,7 @@ const formSchema = z.object({
     addToWishlist: z.boolean().default(false),
 })
 
-const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<File> => {
+const compressImage = (file: File, maxWidth = 400, quality = 0.6): Promise<File> => {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.readAsDataURL(file);
