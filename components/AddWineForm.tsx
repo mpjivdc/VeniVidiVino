@@ -79,7 +79,7 @@ const formSchema = z.object({
     addToWishlist: z.boolean().default(false),
 })
 
-const compressImage = (file: File, maxWidth = 200, quality = 0.4): Promise<File> => {
+const compressImage = (file: File, maxWidth = 200, quality = 0.3): Promise<File> => {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.readAsDataURL(file);
@@ -191,43 +191,68 @@ export function AddWineForm() {
 
     async function onSubmit(values: FormValues) {
         if (typeof window !== "undefined") {
-            window.alert('Saving image data... Please wait for confirmation.');
+            window.alert('Saving collection data... Starting 15s safeguard timer.');
         }
+
         setIsSubmitting(true)
-        const formData = new FormData()
 
-        Object.entries(values).forEach(([key, value]) => {
-            if (key === 'rating' && Array.isArray(value)) {
-                formData.append(key, value[0].toString())
-            } else if (key === 'tastingNotes' && Array.isArray(value)) {
-                (value as string[]).forEach((note: string) => formData.append('tastingNotes', note));
-            } else if (key === 'grapes' && typeof value === 'string') {
-                const grapeList = value.split(',').map(g => g.trim()).filter(g => g);
-                grapeList.forEach(g => formData.append('grapes', g));
-            } else if (typeof value === 'boolean') {
-                if (value) formData.append(key, 'on');
-            } else if (value !== undefined && value !== null) {
-                formData.append(key, value.toString())
-            }
-        })
+        // 15-second timeout safeguard for mobile uploads
+        const timeoutPromise = new Promise((_, reject) =>
+            setTimeout(() => reject(new Error("SAVE_TIMEOUT")), 15000)
+        );
 
-        if (selectedImage) {
-            formData.append("image", selectedImage);
-        } else {
-            // Explicitly send empty string if no image to prevent column shifting
-            formData.append("image", "");
-        }
+        const saveProcess = async () => {
+            const formData = new FormData()
 
-        try {
-            const result = await createWine(formData)
+            Object.entries(values).forEach(([key, value]) => {
+                if (key === 'rating' && Array.isArray(value)) {
+                    formData.append(key, value[0].toString())
+                } else if (key === 'tastingNotes' && Array.isArray(value)) {
+                    (value as string[]).forEach((note: string) => formData.append('tastingNotes', note));
+                } else if (key === 'grapes' && typeof value === 'string') {
+                    const grapeList = value.split(',').map(g => g.trim()).filter(g => g);
+                    grapeList.forEach(g => formData.append('grapes', g));
+                } else if (typeof value === 'boolean') {
+                    if (value) formData.append(key, 'on');
+                } else if (value !== undefined && value !== null) {
+                    formData.append(key, value.toString())
+                }
+            })
 
-            if (result?.success) {
-                router.push("/cellar");
+            if (selectedImage) {
+                formData.append("image", selectedImage);
+                // Log length for verification
+                try {
+                    const reader = new FileReader();
+                    reader.readAsDataURL(selectedImage);
+                    await new Promise(resolve => reader.onloadend = resolve);
+                    const b64 = reader.result as string;
+                    console.log(`[STORAGE] Uploading Base64 length: ${b64.length}`);
+                } catch (e) { }
             } else {
+                formData.append("image", "");
+            }
+
+            const result = await createWine(formData);
+            if (!result?.success) {
                 throw new Error(result?.error || "Unknown server error");
             }
+            return result;
+        };
+
+        try {
+            await Promise.race([saveProcess(), timeoutPromise]);
+            router.push("/cellar");
         } catch (error: any) {
-            console.error("Failed to add wine", error)
+            console.error("Save failed", error)
+            if (typeof window !== "undefined") {
+                if (error.message === "SAVE_TIMEOUT") {
+                    window.alert('Upload took too long (>15s). Please check your internet and try again.');
+                } else {
+                    window.alert('Save error: ' + error.message);
+                }
+            }
+        } finally {
             setIsSubmitting(false)
         }
     }
