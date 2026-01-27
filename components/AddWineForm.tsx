@@ -79,7 +79,7 @@ const formSchema = z.object({
     addToWishlist: z.boolean().default(false),
 })
 
-const compressImage = (file: File, maxWidth = 1200, quality = 0.8): Promise<File> => {
+const compressImage = (file: File, maxWidth = 800, quality = 0.7): Promise<File> => {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.readAsDataURL(file);
@@ -90,17 +90,27 @@ const compressImage = (file: File, maxWidth = 1200, quality = 0.8): Promise<File
                 const canvas = document.createElement("canvas");
                 let width = img.width;
                 let height = img.height;
+
                 if (width > maxWidth) {
                     height = (maxWidth / width) * height;
                     width = maxWidth;
                 }
+
                 canvas.width = width;
                 canvas.height = height;
                 const ctx = canvas.getContext("2d");
-                ctx?.drawImage(img, 0, 0, width, height);
+                if (ctx) {
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'high';
+                    ctx.drawImage(img, 0, 0, width, height);
+                }
+
                 canvas.toBlob((blob) => {
                     if (blob) {
-                        resolve(new File([blob], file.name, { type: "image/jpeg", lastModified: Date.now() }));
+                        resolve(new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
+                            type: "image/jpeg",
+                            lastModified: Date.now()
+                        }));
                     } else {
                         reject(new Error("Compression failed"));
                     }
