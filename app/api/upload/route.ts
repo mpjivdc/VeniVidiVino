@@ -4,9 +4,11 @@ import { VertexAI, InlineDataPart } from "@google-cloud/vertexai";
 export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
 
+const credentialsJson = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
 const vertexAI = new VertexAI({
     project: "veni-vidi-vinoantigrav",
     location: "europe-west1",
+    googleAuthOptions: credentialsJson ? { credentials: JSON.parse(credentialsJson) } : undefined
 });
 
 export async function POST(req: NextRequest) {
