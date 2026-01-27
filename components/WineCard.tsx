@@ -13,6 +13,9 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useState } from "react"
+import { Plus, Minus } from "lucide-react"
+import { Button } from "./ui/button"
+import { updateQuantityAction } from "@/lib/actions"
 
 interface WineCardProps {
     wine: WineType
@@ -21,6 +24,19 @@ interface WineCardProps {
 
 export function WineCard({ wine, sheetTitle }: WineCardProps) {
     const [isOpen, setIsOpen] = useState(false)
+    const [optimisticQuantity, setOptimisticQuantity] = useState(wine.quantity)
+
+    const handleQuantityChange = async (e: React.MouseEvent, delta: number) => {
+        e.stopPropagation();
+        const next = Math.max(0, optimisticQuantity + delta);
+        if (next === optimisticQuantity) return;
+
+        setOptimisticQuantity(next);
+        const result = await updateQuantityAction(wine.id, next, sheetTitle);
+        if (!result.success) {
+            setOptimisticQuantity(wine.quantity); // Revert on failure
+        }
+    };
 
     // Drinking Window Logic (Definitive 2026 implementation)
     const currentYear = 2026;
@@ -85,18 +101,34 @@ export function WineCard({ wine, sheetTitle }: WineCardProps) {
                                 {wine.country && <p className="text-[10px] text-muted-foreground opacity-80">{wine.region ? `${wine.region}, ` : ''}{wine.country}</p>}
                             </div>
                             <div className="flex items-center gap-2 mt-2 overflow-hidden">
-                                <Badge variant="secondary" className="text-[10px] px-1.5 h-5 shrink-0">{wine.vintage}</Badge>
-                                <Badge variant="outline" className="text-[10px] px-1.5 h-5 border-primary/30 text-primary shrink-0">{wine.type}</Badge>
-                                {wine.grapes && wine.grapes.length > 0 && (
-                                    <span className="text-[10px] text-muted-foreground truncate ml-1">{wine.grapes.join(", ")}</span>
-                                )}
+                                <div className="flex items-center bg-secondary/50 rounded-md border border-border/30 px-1 shrink-0">
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-6 w-6 rounded-sm hover:bg-background/50"
+                                        onClick={(e) => handleQuantityChange(e, -1)}
+                                    >
+                                        <Minus className="h-3 w-3" />
+                                    </Button>
+                                    <span className="text-[10px] font-bold min-w-[1.2rem] text-center">{optimisticQuantity}</span>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-6 w-6 rounded-sm hover:bg-background/50"
+                                        onClick={(e) => handleQuantityChange(e, 1)}
+                                    >
+                                        <Plus className="h-3 w-3" />
+                                    </Button>
+                                </div>
+                                <Badge variant="secondary" className="text-[10px] px-1.5 h-6 shrink-0">{wine.vintage}</Badge>
+                                <Badge variant="outline" className="text-[10px] px-1.5 h-6 border-primary/30 text-primary shrink-0 truncate">{wine.type}</Badge>
                             </div>
                         </div>
                     </CardContent>
                 </Card>
             </DrawerTrigger>
             <DrawerContent className="p-0 border-none bg-transparent">
-                <WineDetailView wine={wine} sheetTitle={sheetTitle} onClose={() => setIsOpen(false)} />
+                <WineDetailView wine={{ ...wine, quantity: optimisticQuantity }} sheetTitle={sheetTitle} onClose={() => setIsOpen(false)} />
             </DrawerContent>
         </Drawer>
     )

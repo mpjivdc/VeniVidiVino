@@ -59,6 +59,7 @@ export async function POST(req: NextRequest) {
                 - country: The country of origin.
                 - grapes: An array of grape varieties mentioned on the label.
                 - alcohol: The alcohol percentage as a number (e.g., 14.5).
+                - pairings: Suggest exactly 3 perfect food pairings based on this wine's style as a single string (e.g., "Grilled ribeye, aged cheddar, dark chocolate").
                 
                 Return ONLY raw valid JSON. Do not include markdown formatting or backticks.`;
 

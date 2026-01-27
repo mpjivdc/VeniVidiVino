@@ -225,6 +225,22 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
                     )}
                 </div>
 
+                {/* Pairing Suggestions */}
+                {wine.pairingSuggestions && (
+                    <div className="space-y-4">
+                        <div className="flex items-center gap-2 text-primary border-b pb-1">
+                            <GlassWater className="w-4 h-4" />
+                            <h3 className="font-bold text-xs uppercase tracking-wider">Food Pairings</h3>
+                        </div>
+                        <div className="p-4 bg-primary/5 rounded-xl border border-primary/10 flex gap-3">
+                            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                                <span className="text-sm">🍴</span>
+                            </div>
+                            <p className="text-sm italic leading-relaxed">"{wine.pairingSuggestions}"</p>
+                        </div>
+                    </div>
+                )}
+
                 {/* Timeline & Purchase */}
                 <div className="space-y-4">
                     <div className="flex items-center gap-2 text-primary border-b pb-1">

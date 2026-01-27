@@ -133,3 +133,16 @@ export async function deleteWineAction(id: string, sheetTitle: "Cellar" | "Wishl
         return { success: false, error: error.message };
     }
 }
+export async function updateQuantityAction(id: string, newQuantity: number, sheetTitle: "Cellar" | "Wishlist") {
+    try {
+        const updates: Partial<Wine> = { quantity: newQuantity };
+        await updateWine(id, updates, sheetTitle);
+        revalidatePath("/");
+        revalidatePath("/cellar");
+        revalidatePath("/wishlist");
+        return { success: true };
+    } catch (error: any) {
+        console.error("Quantity update error:", error);
+        return { success: false, error: error.message };
+    }
+}
