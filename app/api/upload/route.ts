@@ -5,24 +5,28 @@ export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
 
 const rawJson = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
-let vertexAI: VertexAI;
 
-try {
-    const cleanedJson = rawJson?.trim();
-    const credentials = cleanedJson ? JSON.parse(cleanedJson) : undefined;
-    vertexAI = new VertexAI({
-        project: "veni-vidi-vinoantigrav",
-        location: "europe-west1",
-        googleAuthOptions: credentials ? { credentials } : undefined
-    });
-    if (credentials) console.log("[Auth] JSON credentials parsed successfully.");
-} catch (e: any) {
-    console.error("[Auth] JSON Parse Error:", e.message);
-    vertexAI = new VertexAI({
-        project: "veni-vidi-vinoantigrav",
-        location: "europe-west1",
-    });
-}
+const getVertexAI = () => {
+    try {
+        const cleanedJson = rawJson?.trim();
+        const credentials = cleanedJson ? JSON.parse(cleanedJson) : undefined;
+        const instance = new VertexAI({
+            project: "veni-vidi-vinoantigrav",
+            location: "europe-west1",
+            googleAuthOptions: credentials ? { credentials } : undefined
+        });
+        if (credentials) console.log("[Auth] JSON credentials parsed successfully.");
+        return instance;
+    } catch (e: any) {
+        console.error("[Auth] JSON Parse Error:", e.message);
+        return new VertexAI({
+            project: "veni-vidi-vinoantigrav",
+            location: "europe-west1",
+        });
+    }
+};
+
+const vertexAI = getVertexAI();
 
 export async function POST(req: NextRequest) {
     try {
@@ -33,15 +37,11 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "No image provided" }, { status: 400 });
         }
 
-        if (!process.env.GOOGLE_API_KEY) {
-            return NextResponse.json({ error: "API Key not configured" }, { status: 500 });
-        }
-
         const buffer = Buffer.from(await file.arrayBuffer());
         const base64Image = buffer.toString("base64");
         console.log("[AI Scan] Image parsed successfully.");
 
-        const modelsToTry = ["gemini-3-flash", "gemini-1.5-flash", "gemini-2.0-flash-exp"];
+        const modelsToTry = ["gemini-3-flash", "gemini-2.5-flash"];
         let lastError = null;
 
         for (const modelName of modelsToTry) {
