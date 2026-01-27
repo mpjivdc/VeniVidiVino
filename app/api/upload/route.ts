@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { VertexAI, InlineDataPart } from "@google-cloud/vertexai";
 
 export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
 
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || "");
+const vertexAI = new VertexAI({
+    project: "veni-vidi-vinoantigrav",
+    location: "europe-west1",
+});
 
 export async function POST(req: NextRequest) {
     try {
@@ -22,34 +25,38 @@ export async function POST(req: NextRequest) {
         const buffer = Buffer.from(await file.arrayBuffer());
         const base64Image = buffer.toString("base64");
 
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+        const generativeModel = vertexAI.getGenerativeModel({
+            model: "gemini-3-flash",
+        });
 
         const prompt = `Analyze this wine label image and extract the following details in JSON format:
-    - name: The name of the wine.
-    - producer: The producer/winery name.
-    - year: The vintage year (number). If not found, use current year.
-    - type: One of "Red", "White", "Rose", "Sparkling", "Dessert", "Fortified", "Orange", "Other". Infer from color or grape if possible. Default to "Red".
-    - region: The region (e.g., Napa Valley, Bordeaux).
-    - subRegion: The specific sub-region or AOC if visible (e.g., Bolgheri, Margaux).
-    - country: The country of origin.
-    - grapes: An array of grape varieties mentioned on the label.
-    - alcohol: The alcohol percentage as a number (e.g., 14.5).
-    
-    Return ONLY raw valid JSON. Do not include markdown formatting or backticks.`;
+        - name: The name of the wine.
+        - producer: The producer/winery name.
+        - year: The vintage year (number). If not found, use current year.
+        - type: One of "Red", "White", "Rose", "Sparkling", "Dessert", "Fortified", "Orange", "Other". Infer from color or grape if possible. Default to "Red".
+        - region: The region (e.g., Napa Valley, Bordeaux).
+        - subRegion: The specific sub-region or AOC if visible (e.g., Bolgheri, Margaux).
+        - country: The country of origin.
+        - grapes: An array of grape varieties mentioned on the label.
+        - alcohol: The alcohol percentage as a number (e.g., 14.5).
+        
+        Return ONLY raw valid JSON. Do not include markdown formatting or backticks.`;
 
-        console.log("[AI Scan] Sending image to Gemini...");
-        const result = await model.generateContent([
-            prompt,
-            {
-                inlineData: {
-                    data: base64Image,
-                    mimeType: file.type || "image/jpeg",
-                },
+        console.log("[AI Scan] Sending image to Vertex AI (Gemini 3 Flash)...");
+
+        const imagePart: InlineDataPart = {
+            inlineData: {
+                data: base64Image,
+                mimeType: file.type || "image/jpeg",
             },
-        ]);
+        };
+
+        const result = await generativeModel.generateContent({
+            contents: [{ role: 'user', parts: [{ text: prompt }, imagePart] }],
+        });
 
         const response = await result.response;
-        const text = response.text();
+        const text = response.candidates?.[0]?.content?.parts?.[0]?.text || "";
         console.log(`[AI Scan] Raw Response: ${text}`);
 
         // Clean up potential markdown code blocks or whitespace
