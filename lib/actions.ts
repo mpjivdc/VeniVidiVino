@@ -86,12 +86,13 @@ export async function createWine(formData: FormData) {
         revalidatePath("/wishlist");
 
         return { success: true };
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
         console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         console.error("FATAL ACTION ERROR: createWine CRASHED");
-        console.error(`ERROR MESSAGE: ${error.message}`);
+        console.error(`ERROR MESSAGE: ${message}`);
         console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        return { success: false, error: error.message };
+        return { success: false, error: message };
     }
 }
 
@@ -115,9 +116,10 @@ export async function updateWineAction(id: string, formData: FormData, sheetTitl
         revalidatePath("/cellar");
         revalidatePath("/wishlist");
         return { success: true };
-    } catch (error: any) {
-        console.error("Update error:", error);
-        return { success: false, error: error.message };
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.error("Update error:", message);
+        return { success: false, error: message };
     }
 }
 
@@ -128,9 +130,10 @@ export async function deleteWineAction(id: string, sheetTitle: "Cellar" | "Wishl
         revalidatePath("/cellar");
         revalidatePath("/wishlist");
         return { success: true };
-    } catch (error: any) {
-        console.error("Delete error:", error);
-        return { success: false, error: error.message };
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.error("Delete error:", message);
+        return { success: false, error: message };
     }
 }
 export async function updateQuantityAction(id: string, newQuantity: number, sheetTitle: "Cellar" | "Wishlist") {
@@ -141,8 +144,9 @@ export async function updateQuantityAction(id: string, newQuantity: number, shee
         revalidatePath("/cellar");
         revalidatePath("/wishlist");
         return { success: true };
-    } catch (error: any) {
-        console.error("Quantity update error:", error);
-        return { success: false, error: error.message };
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.error("Quantity update error:", message);
+        return { success: false, error: message };
     }
 }

@@ -5,10 +5,17 @@ import { Wine } from "@/lib/types"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Slider } from "@/components/ui/slider"
 import { updateWineAction, deleteWineAction } from "@/lib/actions"
-import { Loader2, Edit2, Trash2, Check, X, Calendar, MapPin, DollarSign, GlassWater, Info, Wine as WineIcon } from "lucide-react"
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "@/components/ui/accordion"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Loader2, Edit2, Trash2, Check, X, Calendar, MapPin, GlassWater, Info } from "lucide-react"
+import { Label } from "@/components/ui/label"
 
 interface WineDetailViewProps {
     wine: Wine
@@ -56,8 +63,9 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
             } else {
                 console.error(`Update failed: ${result?.error || "Unknown error"}`)
             }
-        } catch (error: any) {
-            console.error("Save error", error)
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : String(error);
+            console.error("Save error", message)
         } finally {
             setIsSaving(false)
         }
@@ -74,8 +82,9 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
                 console.error(`Delete failed: ${result?.error || "Unknown error"}`)
                 setIsDeleting(false)
             }
-        } catch (error: any) {
-            console.error("Delete error", error)
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : String(error);
+            console.error("Delete error", message)
             setIsDeleting(false)
         }
     }
@@ -127,7 +136,7 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
                     <div className="bg-card border rounded-xl p-4 space-y-1">
                         <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">Quantity</p>
                         {isEditing ? (
-                            <Input type="number" value={quantity} onChange={(e) => setQuantity(e.target.value)} className="h-8" />
+                            <Input type="number" value={quantity} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setQuantity(e.target.value)} className="h-8" />
                         ) : (
                             <p className="text-xl font-bold">{wine.quantity} <span className="text-sm font-normal text-muted-foreground">bottles</span></p>
                         )}
@@ -186,28 +195,38 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
                         <h3 className="font-bold text-xs uppercase tracking-wider">Tasting Notes</h3>
                     </div>
                     {isEditing ? (
-                        <div className="space-y-3">
+                        <Accordion type="multiple" className="w-full space-y-2">
                             {Object.entries(tastingNoteOptions).map(([category, notes]) => (
-                                <div key={category}>
-                                    <p className="text-[10px] text-muted-foreground font-bold mb-1 uppercase tracking-tighter">{category}</p>
-                                    <div className="flex flex-wrap gap-1.5">
-                                        {notes.map(note => {
-                                            const isSelected = tastingNotes.includes(note);
-                                            return (
-                                                <Badge
-                                                    key={note}
-                                                    variant={isSelected ? "default" : "outline"}
-                                                    className="cursor-pointer text-[10px] py-0 px-2 h-6"
-                                                    onClick={() => toggleNote(note)}
-                                                >
-                                                    {note}
-                                                </Badge>
-                                            )
-                                        })}
-                                    </div>
-                                </div>
+                                <AccordionItem key={category} value={category} className="border border-white/10 rounded-xl px-4 bg-card/50">
+                                    <AccordionTrigger className="hover:no-underline py-3">
+                                        <div className="flex flex-col items-start gap-0.5">
+                                            <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{category}</span>
+                                            <span className="text-[10px] text-primary">
+                                                {tastingNotes.filter(n => notes.includes(n)).length} selected
+                                            </span>
+                                        </div>
+                                    </AccordionTrigger>
+                                    <AccordionContent className="pb-4 pt-2">
+                                        <div className="grid grid-cols-2 gap-x-2 gap-y-2">
+                                            {notes.map(note => {
+                                                const isSelected = tastingNotes.includes(note);
+                                                return (
+                                                    <button
+                                                        key={note}
+                                                        type="button"
+                                                        onClick={() => toggleNote(note)}
+                                                        className={`flex items-center justify-center p-3 rounded-xl border text-[11px] font-bold transition-all active:scale-95 ${isSelected ? "bg-primary border-primary text-white shadow-lg" : "bg-white/5 border-white/10 text-muted-foreground hover:bg-white/10"
+                                                            }`}
+                                                    >
+                                                        {note}
+                                                    </button>
+                                                )
+                                            })}
+                                        </div>
+                                    </AccordionContent>
+                                </AccordionItem>
                             ))}
-                        </div>
+                        </Accordion>
                     ) : (
                         <div className="flex flex-wrap gap-2">
                             {wine.tastingNotes && wine.tastingNotes.length > 0 ? (
@@ -215,12 +234,6 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
                             ) : (
                                 <p className="text-sm text-muted-foreground italic">No tasting notes recorded yet.</p>
                             )}
-                        </div>
-                    )}
-                    {!isEditing && wine.pairingSuggestions && (
-                        <div className="mt-4 p-3 bg-muted/30 rounded-lg">
-                            <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-tighter mb-1">Pairings</p>
-                            <p className="text-sm italic">"{wine.pairingSuggestions}"</p>
                         </div>
                     )}
                 </div>
@@ -236,7 +249,7 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
                             <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                                 <span className="text-sm">🍴</span>
                             </div>
-                            <p className="text-sm italic leading-relaxed">"{wine.pairingSuggestions}"</p>
+                            <p className="text-sm italic leading-relaxed">&quot;{wine.pairingSuggestions}&quot;</p>
                         </div>
                     </div>
                 )}

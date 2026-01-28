@@ -25,8 +25,9 @@ export async function getDoc() {
         await doc.loadInfo();
         console.log(`[GoogleSheets] Connected to: ${doc.title}`);
         return doc;
-    } catch (error: any) {
-        console.error(`[GoogleSheets] Connection Failed: ${error.message}`);
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.error(`[GoogleSheets] Connection Failed: ${message}`);
         throw error;
     }
 }

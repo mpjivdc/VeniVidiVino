@@ -15,10 +15,10 @@ const getVertexAI = () => {
             location: "europe-west1",
             googleAuthOptions: credentials ? { credentials } : undefined
         });
-        if (credentials) console.log("[Auth] JSON credentials parsed successfully.");
         return instance;
-    } catch (e: any) {
-        console.error("[Auth] JSON Parse Error:", e.message);
+    } catch (e: unknown) {
+        const message = e instanceof Error ? e.message : String(e);
+        console.error("[Auth] JSON Parse Error:", message);
         return new VertexAI({
             project: "veni-vidi-vinoantigrav",
             location: "europe-west1",
@@ -42,7 +42,6 @@ export async function POST(req: NextRequest) {
         console.log("[AI Scan] Image parsed successfully.");
 
         const modelsToTry = ["gemini-3-flash", "gemini-2.0-flash"];
-        let lastError = null;
 
         for (const modelName of modelsToTry) {
             try {
@@ -60,6 +59,7 @@ export async function POST(req: NextRequest) {
                 - grapes: An array of grape varieties mentioned on the label.
                 - alcohol: The alcohol percentage as a number (e.g., 14.5).
                 - pairings: Suggest exactly 3 perfect food pairings based on this wine's style as a single string (e.g., "Grilled ribeye, aged cheddar, dark chocolate").
+                - tastingNotes: An array of exactly 3-5 relevant tasting notes from this list: Red Cherry, Raspberry, Black Plum, Blackberry, Lemon, Green Apple, Peach, Apricot, Rose, Violet, Blossom, Honeysuckle, Forest Floor, Mushroom, Leather, Tobacco, Wet Stones, Vanilla, Cedar, Black Pepper, Cloves, Smoke, Chocolate, High Acidity, Firm Tannins, Full-Bodied, Silky, Crisp.
                 
                 Return ONLY raw valid JSON. Do not include markdown formatting or backticks.`;
 
@@ -85,9 +85,9 @@ export async function POST(req: NextRequest) {
                 console.log(`[AI Raw Output] ${JSON.stringify(data)}`);
                 console.log(`[AI Scan] Parsed Success with ${modelName}: ${data.name}`);
                 return NextResponse.json({ ...data, _model: modelName });
-            } catch (e: any) {
-                console.error(`[AI Scan] Model ${modelName} failed:`, e.message);
-                lastError = e;
+            } catch (e: unknown) {
+                const message = e instanceof Error ? e.message : String(e);
+                console.error(`[AI Scan] Model ${modelName} failed:`, message);
                 continue;
             }
         }
@@ -95,9 +95,10 @@ export async function POST(req: NextRequest) {
         console.warn("[AI Scan] All models failed or were blocked. Bypassing AI failure for manual user entry.");
         return NextResponse.json({ _error: "Bypassed" });
 
-    } catch (error: any) {
-        console.error("[AI Scan] FATAL ERROR:", error.message);
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.error("[AI Scan] FATAL ERROR:", message);
         // Even in fatal error, return empty object to allow manual entry
-        return NextResponse.json({ _error: error.message });
+        return NextResponse.json({ _error: message });
     }
 }

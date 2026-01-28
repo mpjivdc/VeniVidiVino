@@ -55,7 +55,7 @@ export async function getWines(sheetTitle: "Cellar" | "Wishlist"): Promise<Wine[
                 country: row.get("Country"),
                 region: row.get("Region"),
                 subRegion: row.get("Sub-region"),
-                type: row.get("Type") as any,
+                type: row.get("Type") as Wine["type"],
                 grapes,
                 producer: row.get("Producer") || "",
                 alcoholContent: parseFloat(row.get("Alcohol%")) || undefined,
@@ -90,7 +90,7 @@ export async function addWine(wine: Omit<Wine, "id" | "dateAdded">, destinations
 
     const id = crypto.randomUUID();
     const now = new Date().toISOString();
-    const newWine: any = {
+    const newWine: Record<string, string | number | string[] | undefined> = {
         ...wine,
         image: wine.image,
         status: id, // Use status as UUID storage
@@ -124,8 +124,9 @@ export async function addWine(wine: Omit<Wine, "id" | "dateAdded">, destinations
             revalidatePath("/wishlist");
             revalidatePath("/");
         }
-    } catch (error: any) {
-        console.error(`[Storage] Save Failed: ${error.message}`);
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.error(`[Storage] Save Failed: ${message}`);
         throw error;
     }
 }
@@ -150,7 +151,7 @@ export async function updateWine(id: string, updates: Partial<Wine>, sheetTitle:
     const rows = await sheet.getRows();
     const row = rows.find((r) => r.get("id") === id);
     if (row) {
-        const serializedUpdates: any = { ...updates };
+        const serializedUpdates: Record<string, string | number | string[] | undefined> = { ...updates };
         if (updates.tastingNotes) serializedUpdates.tastingNotes = JSON.stringify(updates.tastingNotes);
         if (updates.grapes) serializedUpdates.grapes = JSON.stringify(updates.grapes);
         if (updates.image) {

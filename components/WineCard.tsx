@@ -1,6 +1,5 @@
 "use client"
 
-import Image from "next/image"
 import { Wine as WineType } from "@/lib/types"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -122,6 +121,11 @@ export function WineCard({ wine, sheetTitle }: WineCardProps) {
                                 </div>
                                 <Badge variant="secondary" className="text-[10px] px-1.5 h-6 shrink-0">{wine.vintage}</Badge>
                                 <Badge variant="outline" className="text-[10px] px-1.5 h-6 border-primary/30 text-primary shrink-0 truncate">{wine.type}</Badge>
+                                {wine.tastingNotes?.slice(0, 2).map(note => (
+                                    <Badge key={note} variant="secondary" className="text-[10px] px-1.5 h-6 bg-primary/5 text-primary/70 border-none shrink-0 hidden sm:flex">
+                                        {note}
+                                    </Badge>
+                                ))}
                             </div>
                         </div>
                     </CardContent>

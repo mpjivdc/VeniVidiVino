@@ -215,7 +215,7 @@ export function AddWineForm() {
     return (
         <div className="space-y-6 pb-24">
             <div className="text-center py-2">
-                <p className="text-[10px] text-primary font-bold tracking-widest">SONNET-V2.5-NO-UI-LIBS</p>
+                <p className="text-[10px] text-primary font-bold tracking-widest">SONNET-V2.6-GRID-FIXED</p>
             </div>
 
             {/* Scan Button at Top */}
@@ -453,7 +453,7 @@ export function AddWineForm() {
                         />
                     </div>
                     <div className="grid grid-cols-2 gap-4 w-full">
-                        <div className="w-full">
+                        <div className="flex flex-col">
                             <label className="block text-sm font-medium mb-2">Date</label>
                             <input
                                 type="date"
@@ -462,7 +462,7 @@ export function AddWineForm() {
                                 className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                             />
                         </div>
-                        <div className="w-full">
+                        <div className="flex flex-col">
                             <label className="block text-sm font-medium mb-2">Price paid</label>
                             <input
                                 type="number"
@@ -513,8 +513,8 @@ export function AddWineForm() {
                                                     type="button"
                                                     onClick={() => toggleNote(note)}
                                                     className={`px-4 py-2 rounded-full border text-[11px] font-bold transition-all active:scale-95 ${isSelected
-                                                            ? "bg-primary border-primary text-white shadow-lg"
-                                                            : "bg-card border-white/10 text-muted-foreground hover:bg-white/5"
+                                                        ? "bg-primary border-primary text-white shadow-lg"
+                                                        : "bg-card border-white/10 text-muted-foreground hover:bg-white/5"
                                                         }`}
                                                 >
                                                     {note}

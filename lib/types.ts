@@ -43,4 +43,4 @@ export interface Wine {
     notes?: string;
 }
 
-export interface WishlistItem extends Wine { } // Now they share structure
+export type WishlistItem = Wine;
