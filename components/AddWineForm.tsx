@@ -266,7 +266,7 @@ export function AddWineForm() {
     return (
         <div className="space-y-6 pb-24">
             <div className="text-center py-2">
-                <p className="text-[10px] text-primary font-bold tracking-widest">ACTIVE-V2.1-FIXED</p>
+                <p className="text-[10px] text-primary font-bold tracking-widest">V2.2-BUILD-FIXED</p>
             </div>
 
             <Form {...form}>
@@ -371,7 +371,7 @@ export function AddWineForm() {
                         <FormField control={form.control} name="boughtAt" render={({ field }) => (
                             <FormItem><FormLabel>Bought At (Shop)</FormLabel><FormControl><Input placeholder="Wine Merchants Inc" className="bg-card" {...field} /></FormControl></FormItem>
                         )} />
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                        <div className="grid grid-cols-2 gap-4">
                             <FormField control={form.control} name="boughtDate" render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Date</FormLabel>
