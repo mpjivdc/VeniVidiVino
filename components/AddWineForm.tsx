@@ -266,7 +266,7 @@ export function AddWineForm() {
     return (
         <div className="space-y-6 pb-24">
             <div className="text-center py-2">
-                <p className="text-[10px] text-primary font-bold tracking-widest">V2.2-BUILD-FIXED</p>
+                <p className="text-[10px] text-primary font-bold tracking-widest">V2.3-NO-POPOVER</p>
             </div>
 
             <Form {...form}>
