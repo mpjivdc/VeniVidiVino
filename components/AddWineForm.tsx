@@ -215,7 +215,7 @@ export function AddWineForm() {
     return (
         <div className="space-y-6 pb-24">
             <div className="text-center py-2">
-                <p className="text-[10px] text-primary font-bold tracking-widest">SONNET-V2.6-GRID-FIXED</p>
+                <p className="text-[10px] text-primary font-bold tracking-widest">V2.7-FORCE-GRID-NOW</p>
             </div>
 
             {/* Scan Button at Top */}
@@ -452,7 +452,7 @@ export function AddWineForm() {
                             className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                         />
                     </div>
-                    <div className="grid grid-cols-2 gap-4 w-full">
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', width: '100%' }}>
                         <div className="flex flex-col">
                             <label className="block text-sm font-medium mb-2">Date</label>
                             <input
@@ -469,6 +469,7 @@ export function AddWineForm() {
                                 step="0.01"
                                 value={price}
                                 onChange={(e) => setPrice(e.target.value)}
+                                placeholder="€"
                                 className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                             />
                         </div>
