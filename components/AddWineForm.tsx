@@ -1,19 +1,18 @@
 "use client"
 
+import * as React from "react"
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { useRouter } from "next/navigation"
-import { Loader2, Upload, Plus, X, Calendar, MapPin, DollarSign, GlassWater, Info } from "lucide-react"
+import { Loader2, Upload, Plus, Calendar, DollarSign, GlassWater, Info, Camera } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Slider } from "@/components/ui/slider"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Badge } from "@/components/ui/badge"
 import {
     Select,
     SelectContent,
@@ -21,6 +20,12 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "@/components/ui/accordion"
 import {
     Form,
     FormControl,
@@ -144,6 +149,14 @@ export function AddWineForm() {
         },
     })
 
+    // Premium navigation logic: Auto-trigger scan if requested
+    React.useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('action') === 'scan') {
+            document.getElementById('camera-input')?.click();
+        }
+    }, []);
+
     const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (file) {
@@ -183,6 +196,7 @@ export function AddWineForm() {
             if (data.grapes) form.setValue("grapes", Array.isArray(data.grapes) ? data.grapes.join(", ") : data.grapes)
             if (data.alcohol) form.setValue("alcoholContent", data.alcohol.toString())
             if (data.pairings) form.setValue("pairingSuggestions", data.pairings)
+            if (data.tastingNotes) form.setValue("tastingNotes", data.tastingNotes)
         } catch (error) {
             console.error("Scan error", error)
         } finally {
@@ -191,7 +205,6 @@ export function AddWineForm() {
     }
 
     async function onSubmit(values: FormValues) {
-        console.log('Saving collection data...');
         setIsSubmitting(true)
 
         // 15-second timeout safeguard for mobile uploads
@@ -219,14 +232,6 @@ export function AddWineForm() {
 
             if (selectedImage) {
                 formData.append("image", selectedImage);
-                // Log length for verification
-                try {
-                    const reader = new FileReader();
-                    reader.readAsDataURL(selectedImage);
-                    await new Promise(resolve => reader.onloadend = resolve);
-                    const b64 = reader.result as string;
-                    console.log(`[STORAGE] Uploading Base64 length: ${b64.length}`);
-                } catch (e) { }
             } else {
                 formData.append("image", "");
             }
@@ -241,8 +246,9 @@ export function AddWineForm() {
         try {
             await Promise.race([saveProcess(), timeoutPromise]);
             router.push("/cellar");
-        } catch (error: any) {
-            console.error("Save failed", error)
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : String(error);
+            console.error("Save failed", message)
         } finally {
             setIsSubmitting(false)
         }
@@ -258,30 +264,9 @@ export function AddWineForm() {
     }
 
     return (
-        <div className="space-y-6 pb-24 px-1">
-            {/* SCANNER AT THE VERY TOP */}
-            <div className="bg-primary/5 p-4 rounded-xl border border-primary/20 shadow-sm mb-6">
-                <div className="flex flex-col gap-4">
-                    <div className="flex items-center gap-2 text-primary font-semibold text-sm mb-2">
-                        <Upload className="w-4 h-4" />
-                        Quick Add with AI
-                    </div>
-                    {previewUrl && (
-                        <div className="relative aspect-video w-full overflow-hidden rounded-lg border bg-black/10">
-                            <img src={previewUrl} alt="Preview" className="object-cover w-full h-full" />
-                        </div>
-                    )}
-                    <Button
-                        type="button"
-                        className="w-full bg-primary hover:bg-primary/90 text-white shadow-md font-bold py-6 text-lg"
-                        disabled={isScanning}
-                        onClick={() => document.getElementById('camera-input')?.click()}
-                    >
-                        {isScanning ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> Analyzing Label...</> : <><Upload className="mr-2 h-5 w-5" /> SCAN WINE LABEL</>}
-                        <input id="camera-input" type="file" accept="image/*" capture="environment" className="hidden" onChange={handleImageChange} />
-                    </Button>
-                    <p className="text-[10px] text-center text-muted-foreground opacity-70 uppercase tracking-widest">Powered by Gemini Flash AI</p>
-                </div>
+        <div className="space-y-6 pb-24">
+            <div className="text-center py-2">
+                <p className="text-[10px] text-primary font-bold tracking-widest">ACTIVE-V2.1-FIXED</p>
             </div>
 
             <Form {...form}>
@@ -386,12 +371,22 @@ export function AddWineForm() {
                         <FormField control={form.control} name="boughtAt" render={({ field }) => (
                             <FormItem><FormLabel>Bought At (Shop)</FormLabel><FormControl><Input placeholder="Wine Merchants Inc" className="bg-card" {...field} /></FormControl></FormItem>
                         )} />
-                        <div className="grid grid-cols-2 gap-4">
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                             <FormField control={form.control} name="boughtDate" render={({ field }) => (
-                                <FormItem><FormLabel>Date</FormLabel><FormControl><Input type="date" className="bg-card" {...field} /></FormControl></FormItem>
+                                <FormItem>
+                                    <FormLabel>Date</FormLabel>
+                                    <FormControl>
+                                        <Input type="date" className="bg-card h-12 text-base" {...field} />
+                                    </FormControl>
+                                </FormItem>
                             )} />
                             <FormField control={form.control} name="price" render={({ field }) => (
-                                <FormItem><FormLabel>Price paid</FormLabel><FormControl><Input type="number" step="0.01" className="bg-card" {...field} /></FormControl></FormItem>
+                                <FormItem>
+                                    <FormLabel>Price paid</FormLabel>
+                                    <FormControl>
+                                        <Input type="number" step="0.01" className="bg-card h-12 text-base" {...field} />
+                                    </FormControl>
+                                </FormItem>
                             )} />
                         </div>
                     </div>
@@ -411,23 +406,24 @@ export function AddWineForm() {
                         )} />
 
                         <div className="mt-4">
-                            <FormLabel className="mb-2 block">Tasting Notes</FormLabel>
-                            <div className="space-y-3 p-3 border rounded-lg bg-card/50">
+                            <FormLabel className="mb-4 block text-sm font-bold uppercase tracking-wider text-primary">Tasting Notes</FormLabel>
+                            <div className="space-y-6">
                                 {Object.entries(tastingNoteOptions).map(([category, notes]) => (
-                                    <div key={category}>
-                                        <p className="text-[10px] text-muted-foreground font-bold mb-1 uppercase tracking-tighter">{category}</p>
-                                        <div className="flex flex-wrap gap-1.5">
+                                    <div key={category} className="space-y-3">
+                                        <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">{category}</h4>
+                                        <div className="flex flex-wrap gap-2">
                                             {notes.map(note => {
                                                 const isSelected = (form.getValues("tastingNotes") || []).includes(note);
                                                 return (
-                                                    <Badge
+                                                    <button
                                                         key={note}
-                                                        variant={isSelected ? "default" : "outline"}
-                                                        className="cursor-pointer text-[10px] py-0 px-2 h-6"
+                                                        type="button"
                                                         onClick={() => toggleNote(note)}
+                                                        className={`px-4 py-2 rounded-full border text-[11px] font-bold transition-all active:scale-95 ${isSelected ? "bg-primary border-primary text-white shadow-lg" : "bg-card border-white/10 text-muted-foreground hover:bg-white/5"
+                                                            }`}
                                                     >
                                                         {note}
-                                                    </Badge>
+                                                    </button>
                                                 )
                                             })}
                                         </div>
@@ -466,9 +462,10 @@ export function AddWineForm() {
                         </div>
                     </div>
 
-                    <Button type="submit" className="w-full py-7 text-xl font-bold rounded-2xl shadow-lg border-b-4 border-primary-foreground/20 active:border-b-0 active:translate-y-1" disabled={isSubmitting}>
-                        {isSubmitting ? <><Loader2 className="mr-2 h-5 w-5 animate-spin" /> SAVING TO COLLECTION...</> : "SAVE TO COLLECTION"}
+                    <Button type="submit" className="w-full py-8 text-xl font-bold rounded-2xl shadow-[0_8px_30px_rgb(128,0,32,0.3)] border-b-8 border-primary-foreground/20 active:border-b-0 active:translate-y-1 transition-all" disabled={isSubmitting}>
+                        {isSubmitting ? <><Loader2 className="mr-3 h-6 w-6 animate-spin" /> SAVING...</> : "SAVE TO COLLECTION"}
                     </Button>
+
                 </form>
             </Form>
         </div>
