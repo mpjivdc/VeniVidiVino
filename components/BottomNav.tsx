@@ -11,7 +11,7 @@ export function BottomNav() {
     const [showMenu, setShowMenu] = useState(false)
 
     return (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-lg">
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-lg">
             <nav className="bg-card/95 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)] rounded-[2.5rem] px-8 py-3 flex items-center justify-between relative">
                 <Link
                     href="/cellar"

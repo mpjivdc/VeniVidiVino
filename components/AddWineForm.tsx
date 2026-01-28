@@ -2,39 +2,8 @@
 
 import * as React from "react"
 import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
 import { useRouter } from "next/navigation"
-import { Loader2, Upload, Plus, Calendar, DollarSign, GlassWater, Info, Camera } from "lucide-react"
-
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Slider } from "@/components/ui/slider"
-import { Checkbox } from "@/components/ui/checkbox"
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
-import {
-    Accordion,
-    AccordionContent,
-    AccordionItem,
-    AccordionTrigger,
-} from "@/components/ui/accordion"
-import {
-    Form,
-    FormControl,
-    FormDescription,
-    FormField,
-    FormItem,
-    FormLabel,
-    FormMessage,
-} from "@/components/ui/form"
+import { Loader2, Camera, Calendar, DollarSign, GlassWater, Info, Plus } from "lucide-react"
 import { createWine } from "@/lib/actions"
 import { WineType } from "@/lib/types"
 
@@ -47,42 +16,6 @@ const tastingNoteOptions = {
     "Spice & Oak": ["Vanilla", "Cedar", "Black Pepper", "Cloves", "Smoke", "Chocolate"],
     Structure: ["High Acidity", "Firm Tannins", "Full-Bodied", "Silky", "Crisp"],
 };
-
-const formSchema = z.object({
-    // Identity
-    name: z.string().min(2, "Name is required"),
-    producer: z.string().min(2, "Producer is required"),
-    vintage: z.string().regex(/^\d{4}$/, "Must be a valid year"),
-    type: z.enum(["Red", "White", "Rose", "Sparkling", "Dessert", "Fortified", "Orange", "Other"]),
-    country: z.string().optional(),
-    region: z.string().optional(),
-    subRegion: z.string().optional(),
-    grapes: z.string().optional(),
-
-    // Specs
-    alcoholContent: z.string().optional(),
-    bottleSize: z.string().optional(),
-
-    // Inventory
-    quantity: z.string().default("1"),
-    location: z.string().optional(),
-
-    // Timeline
-    drinkFrom: z.string().optional(),
-    drinkTo: z.string().optional(),
-    boughtAt: z.string().optional(),
-    boughtDate: z.string().optional(),
-    price: z.string().optional(),
-
-    // Review
-    rating: z.array(z.number()).length(1),
-    tastingNotes: z.array(z.string()).default([]),
-    pairingSuggestions: z.string().optional(),
-
-    // Destinations
-    addToCellar: z.boolean().default(true),
-    addToWishlist: z.boolean().default(false),
-})
 
 const compressImage = (file: File, maxWidth = 300, quality = 0.4): Promise<File> => {
     return new Promise((resolve, reject) => {
@@ -127,8 +60,6 @@ const compressImage = (file: File, maxWidth = 300, quality = 0.4): Promise<File>
     });
 };
 
-type FormValues = z.infer<typeof formSchema>
-
 export function AddWineForm() {
     const router = useRouter()
     const [isSubmitting, setIsSubmitting] = useState(false)
@@ -136,20 +67,31 @@ export function AddWineForm() {
     const [selectedImage, setSelectedImage] = useState<File | null>(null)
     const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
-    const form = useForm({
-        resolver: zodResolver(formSchema),
-        defaultValues: {
-            name: "", producer: "", vintage: new Date().getFullYear().toString(),
-            type: "Red", country: "", region: "", subRegion: "", grapes: "",
-            alcoholContent: "", bottleSize: "750ml",
-            quantity: "1", location: "",
-            drinkFrom: "", drinkTo: "", boughtAt: "", boughtDate: "", price: "",
-            rating: [3.5], tastingNotes: [], pairingSuggestions: "",
-            addToCellar: true, addToWishlist: false,
-        },
-    })
+    // Form state
+    const [name, setName] = useState("")
+    const [producer, setProducer] = useState("")
+    const [vintage, setVintage] = useState(new Date().getFullYear().toString())
+    const [type, setType] = useState<WineType>("Red")
+    const [country, setCountry] = useState("")
+    const [region, setRegion] = useState("")
+    const [subRegion, setSubRegion] = useState("")
+    const [grapes, setGrapes] = useState("")
+    const [alcoholContent, setAlcoholContent] = useState("")
+    const [bottleSize, setBottleSize] = useState("750ml")
+    const [quantity, setQuantity] = useState("1")
+    const [location, setLocation] = useState("")
+    const [drinkFrom, setDrinkFrom] = useState("")
+    const [drinkTo, setDrinkTo] = useState("")
+    const [boughtAt, setBoughtAt] = useState("")
+    const [boughtDate, setBoughtDate] = useState("")
+    const [price, setPrice] = useState("")
+    const [rating, setRating] = useState(3.5)
+    const [tastingNotes, setTastingNotes] = useState<string[]>([])
+    const [pairingSuggestions, setPairingSuggestions] = useState("")
+    const [addToCellar, setAddToCellar] = useState(true)
+    const [addToWishlist, setAddToWishlist] = useState(false)
 
-    // Premium navigation logic: Auto-trigger scan if requested
+    // Auto-trigger scan if requested
     React.useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         if (params.get('action') === 'scan') {
@@ -167,7 +109,6 @@ export function AddWineForm() {
                 await scanLabel(compressedFile)
             } catch (error) {
                 console.error("Compression error", error)
-                // Fallback to original if compression fails
                 setSelectedImage(file)
                 setPreviewUrl(URL.createObjectURL(file))
                 await scanLabel(file)
@@ -180,23 +121,21 @@ export function AddWineForm() {
         try {
             const formData = new FormData()
             formData.append("image", file)
-            console.log('Sending image to server for AI scan...');
             const response = await fetch("/api/upload", { method: "POST", body: formData })
-            console.log('Server response received!');
             if (!response.ok) throw new Error("Scan failed")
             const data = await response.json()
 
-            if (data.name) form.setValue("name", data.name)
-            if (data.producer) form.setValue("producer", data.producer)
-            if (data.year) form.setValue("vintage", data.year.toString())
-            if (data.type && wineTypes.includes(data.type)) form.setValue("type", data.type)
-            if (data.region) form.setValue("region", data.region)
-            if (data.subRegion) form.setValue("subRegion", data.subRegion)
-            if (data.country) form.setValue("country", data.country)
-            if (data.grapes) form.setValue("grapes", Array.isArray(data.grapes) ? data.grapes.join(", ") : data.grapes)
-            if (data.alcohol) form.setValue("alcoholContent", data.alcohol.toString())
-            if (data.pairings) form.setValue("pairingSuggestions", data.pairings)
-            if (data.tastingNotes) form.setValue("tastingNotes", data.tastingNotes)
+            if (data.name) setName(data.name)
+            if (data.producer) setProducer(data.producer)
+            if (data.year) setVintage(data.year.toString())
+            if (data.type && wineTypes.includes(data.type)) setType(data.type)
+            if (data.region) setRegion(data.region)
+            if (data.subRegion) setSubRegion(data.subRegion)
+            if (data.country) setCountry(data.country)
+            if (data.grapes) setGrapes(Array.isArray(data.grapes) ? data.grapes.join(", ") : data.grapes)
+            if (data.alcohol) setAlcoholContent(data.alcohol.toString())
+            if (data.pairings) setPairingSuggestions(data.pairings)
+            if (data.tastingNotes) setTastingNotes(data.tastingNotes)
         } catch (error) {
             console.error("Scan error", error)
         } finally {
@@ -204,10 +143,18 @@ export function AddWineForm() {
         }
     }
 
-    async function onSubmit(values: FormValues) {
+    const toggleNote = (note: string) => {
+        if (tastingNotes.includes(note)) {
+            setTastingNotes(tastingNotes.filter(n => n !== note))
+        } else {
+            setTastingNotes([...tastingNotes, note])
+        }
+    }
+
+    async function onSubmit(e: React.FormEvent) {
+        e.preventDefault()
         setIsSubmitting(true)
 
-        // 15-second timeout safeguard for mobile uploads
         const timeoutPromise = new Promise((_, reject) =>
             setTimeout(() => reject(new Error("SAVE_TIMEOUT")), 15000)
         );
@@ -215,20 +162,31 @@ export function AddWineForm() {
         const saveProcess = async () => {
             const formData = new FormData()
 
-            Object.entries(values).forEach(([key, value]) => {
-                if (key === 'rating' && Array.isArray(value)) {
-                    formData.append(key, value[0].toString())
-                } else if (key === 'tastingNotes' && Array.isArray(value)) {
-                    (value as string[]).forEach((note: string) => formData.append('tastingNotes', note));
-                } else if (key === 'grapes' && typeof value === 'string') {
-                    const grapeList = value.split(',').map(g => g.trim()).filter(g => g);
-                    grapeList.forEach(g => formData.append('grapes', g));
-                } else if (typeof value === 'boolean') {
-                    if (value) formData.append(key, 'on');
-                } else if (value !== undefined && value !== null) {
-                    formData.append(key, value.toString())
-                }
-            })
+            formData.append("name", name)
+            formData.append("producer", producer)
+            formData.append("vintage", vintage)
+            formData.append("type", type)
+            if (country) formData.append("country", country)
+            if (region) formData.append("region", region)
+            if (subRegion) formData.append("subRegion", subRegion)
+            if (grapes) {
+                const grapeList = grapes.split(',').map(g => g.trim()).filter(g => g);
+                grapeList.forEach(g => formData.append('grapes', g));
+            }
+            if (alcoholContent) formData.append("alcoholContent", alcoholContent)
+            if (bottleSize) formData.append("bottleSize", bottleSize)
+            formData.append("quantity", quantity)
+            if (location) formData.append("location", location)
+            if (drinkFrom) formData.append("drinkFrom", drinkFrom)
+            if (drinkTo) formData.append("drinkTo", drinkTo)
+            if (boughtAt) formData.append("boughtAt", boughtAt)
+            if (boughtDate) formData.append("boughtDate", boughtDate)
+            if (price) formData.append("price", price)
+            formData.append("rating", rating.toString())
+            tastingNotes.forEach(note => formData.append('tastingNotes', note));
+            if (pairingSuggestions) formData.append("pairingSuggestions", pairingSuggestions)
+            if (addToCellar) formData.append("addToCellar", "on")
+            if (addToWishlist) formData.append("addToWishlist", "on")
 
             if (selectedImage) {
                 formData.append("image", selectedImage);
@@ -254,220 +212,379 @@ export function AddWineForm() {
         }
     }
 
-    const toggleNote = (note: string) => {
-        const current = form.getValues("tastingNotes") || []
-        if (current.includes(note)) {
-            form.setValue("tastingNotes", current.filter((n: string) => n !== note))
-        } else {
-            form.setValue("tastingNotes", [...current, note])
-        }
-    }
-
     return (
         <div className="space-y-6 pb-24">
             <div className="text-center py-2">
-                <p className="text-[10px] text-primary font-bold tracking-widest">SONNET-V2.4-FINAL</p>
+                <p className="text-[10px] text-primary font-bold tracking-widest">SONNET-V2.5-NO-UI-LIBS</p>
             </div>
 
-            <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            {/* Scan Button at Top */}
+            <div className="bg-gradient-to-br from-primary/20 to-primary/5 border-2 border-primary/30 rounded-3xl p-6 shadow-xl">
+                <input
+                    type="file"
+                    id="camera-input"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={handleImageChange}
+                    className="hidden"
+                />
+                <button
+                    type="button"
+                    onClick={() => document.getElementById('camera-input')?.click()}
+                    disabled={isScanning}
+                    className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-6 px-8 rounded-2xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-3"
+                >
+                    {isScanning ? (
+                        <>
+                            <Loader2 className="h-6 w-6 animate-spin" />
+                            SCANNING...
+                        </>
+                    ) : (
+                        <>
+                            <Camera className="h-6 w-6" />
+                            SCAN WINE LABEL
+                        </>
+                    )}
+                </button>
+                <p className="text-center text-[11px] text-muted-foreground mt-3 italic">
+                    Take a pic and let AI do its job
+                </p>
+            </div>
 
-                    {/* Identity Section */}
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-2 text-primary border-b pb-1">
-                            <Info className="w-4 h-4" />
-                            <h3 className="font-bold text-sm uppercase tracking-wider">Identity</h3>
-                        </div>
-
-                        <FormField control={form.control} name="name" render={({ field }) => (
-                            <FormItem><FormLabel>Wine Name</FormLabel><FormControl><Input placeholder="e.g. Sassicaia" className="bg-card" {...field} /></FormControl><FormMessage /></FormItem>
-                        )} />
-
-                        <FormField control={form.control} name="producer" render={({ field }) => (
-                            <FormItem><FormLabel>Producer</FormLabel><FormControl><Input placeholder="e.g. Tenuta San Guido" className="bg-card" {...field} /></FormControl><FormMessage /></FormItem>
-                        )} />
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <FormField control={form.control} name="vintage" render={({ field }) => (
-                                <FormItem><FormLabel>Vintage</FormLabel><FormControl><Input type="number" className="bg-card" {...field} /></FormControl><FormMessage /></FormItem>
-                            )} />
-                            <FormField control={form.control} name="type" render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Type</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                        <FormControl><SelectTrigger className="bg-card"><SelectValue /></SelectTrigger></FormControl>
-                                        <SelectContent>{wineTypes.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}</SelectContent>
-                                    </Select>
-                                </FormItem>
-                            )} />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <FormField control={form.control} name="country" render={({ field }) => (
-                                <FormItem><FormLabel>Country</FormLabel><FormControl><Input placeholder="Italy" className="bg-card" {...field} /></FormControl></FormItem>
-                            )} />
-                            <FormField control={form.control} name="region" render={({ field }) => (
-                                <FormItem><FormLabel>Region</FormLabel><FormControl><Input placeholder="Tuscany" className="bg-card" {...field} /></FormControl></FormItem>
-                            )} />
-                        </div>
-
-                        <FormField control={form.control} name="subRegion" render={({ field }) => (
-                            <FormItem><FormLabel>Sub-Region</FormLabel><FormControl><Input placeholder="Bolgheri" className="bg-card" {...field} /></FormControl></FormItem>
-                        )} />
-
-                        <FormField control={form.control} name="grapes" render={({ field }) => (
-                            <FormItem><FormLabel>Grapes</FormLabel><FormControl><Input placeholder="Cabernet Sauvignon, Cabernet Franc" className="bg-card" {...field} /></FormControl><FormDescription className="text-[10px]">Comma separated</FormDescription></FormItem>
-                        )} />
+            <form onSubmit={onSubmit} className="space-y-8">
+                {/* Identity Section */}
+                <div className="space-y-4">
+                    <div className="flex items-center gap-2 text-primary border-b pb-1">
+                        <Info className="w-4 h-4" />
+                        <h3 className="font-bold text-sm uppercase tracking-wider">Identity</h3>
                     </div>
 
-                    {/* Specs & Inventory Section */}
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-2 text-primary border-b pb-1">
-                            <GlassWater className="w-4 h-4" />
-                            <h3 className="font-bold text-sm uppercase tracking-wider">Specs & Inventory</h3>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <FormField control={form.control} name="alcoholContent" render={({ field }) => (
-                                <FormItem><FormLabel>Alcohol %</FormLabel><FormControl><Input type="number" step="0.1" className="bg-card" {...field} /></FormControl></FormItem>
-                            )} />
-                            <FormField control={form.control} name="bottleSize" render={({ field }) => (
-                                <FormItem><FormLabel>Size</FormLabel><FormControl><Input placeholder="750ml" className="bg-card" {...field} /></FormControl></FormItem>
-                            )} />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <FormField control={form.control} name="quantity" render={({ field }) => (
-                                <FormItem><FormLabel>Quantity</FormLabel><FormControl><Input type="number" className="bg-card" {...field} /></FormControl></FormItem>
-                            )} />
-                            <FormField control={form.control} name="location" render={({ field }) => (
-                                <FormItem><FormLabel>Location</FormLabel><FormControl><Input placeholder="Rack A, Shelf 2" className="bg-card" {...field} /></FormControl></FormItem>
-                            )} />
-                        </div>
+                    <div>
+                        <label className="block text-sm font-medium mb-2">Wine Name</label>
+                        <input
+                            type="text"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            placeholder="e.g. Sassicaia"
+                            className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            required
+                        />
                     </div>
 
-                    {/* Timeline Section */}
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-2 text-primary border-b pb-1">
-                            <Calendar className="w-4 h-4" />
-                            <h3 className="font-bold text-sm uppercase tracking-wider">Timeline</h3>
+                    <div>
+                        <label className="block text-sm font-medium mb-2">Producer</label>
+                        <input
+                            type="text"
+                            value={producer}
+                            onChange={(e) => setProducer(e.target.value)}
+                            placeholder="e.g. Tenuta San Guido"
+                            className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            required
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Vintage</label>
+                            <input
+                                type="number"
+                                value={vintage}
+                                onChange={(e) => setVintage(e.target.value)}
+                                className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                                required
+                            />
                         </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <FormField control={form.control} name="drinkFrom" render={({ field }) => (
-                                <FormItem><FormLabel>Drink From</FormLabel><FormControl><Input type="number" placeholder="2028" className="bg-card" {...field} /></FormControl></FormItem>
-                            )} />
-                            <FormField control={form.control} name="drinkTo" render={({ field }) => (
-                                <FormItem><FormLabel>Drink To</FormLabel><FormControl><Input type="number" placeholder="2040" className="bg-card" {...field} /></FormControl></FormItem>
-                            )} />
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Type</label>
+                            <select
+                                value={type}
+                                onChange={(e) => setType(e.target.value as WineType)}
+                                className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            >
+                                {wineTypes.map(t => <option key={t} value={t}>{t}</option>)}
+                            </select>
                         </div>
                     </div>
 
-                    {/* Purchase Info Section */}
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-2 text-primary border-b pb-1">
-                            <DollarSign className="w-4 h-4" />
-                            <h3 className="font-bold text-sm uppercase tracking-wider">Purchase Info</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Country</label>
+                            <input
+                                type="text"
+                                value={country}
+                                onChange={(e) => setCountry(e.target.value)}
+                                placeholder="Italy"
+                                className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            />
                         </div>
-                        <FormField control={form.control} name="boughtAt" render={({ field }) => (
-                            <FormItem><FormLabel>Bought At (Shop)</FormLabel><FormControl><Input placeholder="Wine Merchants Inc" className="bg-card" {...field} /></FormControl></FormItem>
-                        )} />
-                        <div className="grid grid-cols-2 gap-4">
-                            <FormField control={form.control} name="boughtDate" render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Date</FormLabel>
-                                    <FormControl>
-                                        <Input type="date" className="bg-card h-12 text-base" {...field} />
-                                    </FormControl>
-                                </FormItem>
-                            )} />
-                            <FormField control={form.control} name="price" render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Price paid</FormLabel>
-                                    <FormControl>
-                                        <Input type="number" step="0.01" className="bg-card h-12 text-base" {...field} />
-                                    </FormControl>
-                                </FormItem>
-                            )} />
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Region</label>
+                            <input
+                                type="text"
+                                value={region}
+                                onChange={(e) => setRegion(e.target.value)}
+                                placeholder="Tuscany"
+                                className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            />
                         </div>
                     </div>
 
-                    {/* Review Section */}
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-2 text-primary border-b pb-1">
-                            <Plus className="w-4 h-4" />
-                            <h3 className="font-bold text-sm uppercase tracking-wider">Review & Notes</h3>
+                    <div>
+                        <label className="block text-sm font-medium mb-2">Sub-Region</label>
+                        <input
+                            type="text"
+                            value={subRegion}
+                            onChange={(e) => setSubRegion(e.target.value)}
+                            placeholder="Bolgheri"
+                            className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium mb-2">Grapes</label>
+                        <input
+                            type="text"
+                            value={grapes}
+                            onChange={(e) => setGrapes(e.target.value)}
+                            placeholder="Cabernet Sauvignon, Cabernet Franc"
+                            className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                        />
+                        <p className="text-[10px] text-muted-foreground mt-1">Comma separated</p>
+                    </div>
+                </div>
+
+                {/* Specs & Inventory Section */}
+                <div className="space-y-4">
+                    <div className="flex items-center gap-2 text-primary border-b pb-1">
+                        <GlassWater className="w-4 h-4" />
+                        <h3 className="font-bold text-sm uppercase tracking-wider">Specs & Inventory</h3>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Alcohol %</label>
+                            <input
+                                type="number"
+                                step="0.1"
+                                value={alcoholContent}
+                                onChange={(e) => setAlcoholContent(e.target.value)}
+                                className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            />
                         </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Size</label>
+                            <input
+                                type="text"
+                                value={bottleSize}
+                                onChange={(e) => setBottleSize(e.target.value)}
+                                placeholder="750ml"
+                                className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            />
+                        </div>
+                    </div>
 
-                        <FormField control={form.control} name="rating" render={({ field }) => (
-                            <FormItem>
-                                <div className="flex justify-between items-center mb-2"><FormLabel>Rating</FormLabel><span className="text-primary font-bold text-lg">{field.value[0]}</span></div>
-                                <FormControl><Slider min={0} max={5} step={0.1} value={field.value} onValueChange={field.onChange} /></FormControl>
-                            </FormItem>
-                        )} />
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Quantity</label>
+                            <input
+                                type="number"
+                                value={quantity}
+                                onChange={(e) => setQuantity(e.target.value)}
+                                className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Location</label>
+                            <input
+                                type="text"
+                                value={location}
+                                onChange={(e) => setLocation(e.target.value)}
+                                placeholder="Rack A, Shelf 2"
+                                className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            />
+                        </div>
+                    </div>
+                </div>
 
-                        <div className="mt-4">
-                            <FormLabel className="mb-4 block text-sm font-bold uppercase tracking-wider text-primary">Tasting Notes</FormLabel>
-                            <div className="space-y-6">
-                                {Object.entries(tastingNoteOptions).map(([category, notes]) => (
-                                    <div key={category} className="space-y-3">
-                                        <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">{category}</h4>
-                                        <div className="flex flex-wrap gap-2">
-                                            {notes.map(note => {
-                                                const isSelected = (form.getValues("tastingNotes") || []).includes(note);
-                                                return (
-                                                    <button
-                                                        key={note}
-                                                        type="button"
-                                                        onClick={() => toggleNote(note)}
-                                                        className={`px-4 py-2 rounded-full border text-[11px] font-bold transition-all active:scale-95 ${isSelected ? "bg-primary border-primary text-white shadow-lg" : "bg-card border-white/10 text-muted-foreground hover:bg-white/5"
-                                                            }`}
-                                                    >
-                                                        {note}
-                                                    </button>
-                                                )
-                                            })}
-                                        </div>
+                {/* Timeline Section */}
+                <div className="space-y-4">
+                    <div className="flex items-center gap-2 text-primary border-b pb-1">
+                        <Calendar className="w-4 h-4" />
+                        <h3 className="font-bold text-sm uppercase tracking-wider">Timeline</h3>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Drink From</label>
+                            <input
+                                type="number"
+                                value={drinkFrom}
+                                onChange={(e) => setDrinkFrom(e.target.value)}
+                                placeholder="2028"
+                                className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium mb-2">Drink To</label>
+                            <input
+                                type="number"
+                                value={drinkTo}
+                                onChange={(e) => setDrinkTo(e.target.value)}
+                                placeholder="2040"
+                                className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Purchase Info Section */}
+                <div className="space-y-4">
+                    <div className="flex items-center gap-2 text-primary border-b pb-1">
+                        <DollarSign className="w-4 h-4" />
+                        <h3 className="font-bold text-sm uppercase tracking-wider">Purchase Info</h3>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium mb-2">Bought At (Shop)</label>
+                        <input
+                            type="text"
+                            value={boughtAt}
+                            onChange={(e) => setBoughtAt(e.target.value)}
+                            placeholder="Wine Merchants Inc"
+                            className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                        />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 w-full">
+                        <div className="w-full">
+                            <label className="block text-sm font-medium mb-2">Date</label>
+                            <input
+                                type="date"
+                                value={boughtDate}
+                                onChange={(e) => setBoughtDate(e.target.value)}
+                                className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            />
+                        </div>
+                        <div className="w-full">
+                            <label className="block text-sm font-medium mb-2">Price paid</label>
+                            <input
+                                type="number"
+                                step="0.01"
+                                value={price}
+                                onChange={(e) => setPrice(e.target.value)}
+                                className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Review Section */}
+                <div className="space-y-4">
+                    <div className="flex items-center gap-2 text-primary border-b pb-1">
+                        <Plus className="w-4 h-4" />
+                        <h3 className="font-bold text-sm uppercase tracking-wider">Review & Notes</h3>
+                    </div>
+
+                    <div>
+                        <div className="flex justify-between items-center mb-2">
+                            <label className="block text-sm font-medium">Rating</label>
+                            <span className="text-primary font-bold text-lg">{rating}</span>
+                        </div>
+                        <input
+                            type="range"
+                            min="0"
+                            max="5"
+                            step="0.1"
+                            value={rating}
+                            onChange={(e) => setRating(parseFloat(e.target.value))}
+                            className="w-full h-2 bg-card rounded-lg appearance-none cursor-pointer accent-primary"
+                        />
+                    </div>
+
+                    <div className="mt-4">
+                        <label className="mb-4 block text-sm font-bold uppercase tracking-wider text-primary">Tasting Notes</label>
+                        <div className="space-y-6">
+                            {Object.entries(tastingNoteOptions).map(([category, notes]) => (
+                                <div key={category} className="space-y-3">
+                                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">{category}</h4>
+                                    <div className="flex flex-wrap gap-2">
+                                        {notes.map(note => {
+                                            const isSelected = tastingNotes.includes(note);
+                                            return (
+                                                <button
+                                                    key={note}
+                                                    type="button"
+                                                    onClick={() => toggleNote(note)}
+                                                    className={`px-4 py-2 rounded-full border text-[11px] font-bold transition-all active:scale-95 ${isSelected
+                                                            ? "bg-primary border-primary text-white shadow-lg"
+                                                            : "bg-card border-white/10 text-muted-foreground hover:bg-white/5"
+                                                        }`}
+                                                >
+                                                    {note}
+                                                </button>
+                                            )
+                                        })}
                                     </div>
-                                ))}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium mb-2">Food Pairings</label>
+                        <input
+                            type="text"
+                            value={pairingSuggestions}
+                            onChange={(e) => setPairingSuggestions(e.target.value)}
+                            placeholder="Grilled Lamb, Aged Cheese..."
+                            className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                        />
+                    </div>
+                </div>
+
+                {/* Destinations Section */}
+                <div className="bg-primary/10 p-5 rounded-2xl border border-primary/20 shadow-inner">
+                    <h3 className="font-bold text-sm uppercase tracking-wider mb-4 text-primary">Destinations</h3>
+                    <div className="flex flex-col gap-4">
+                        <div className="flex flex-row items-center space-x-3 bg-card p-3 rounded-lg border">
+                            <input
+                                type="checkbox"
+                                checked={addToCellar}
+                                onChange={(e) => setAddToCellar(e.target.checked)}
+                                className="w-4 h-4 accent-primary"
+                            />
+                            <div className="space-y-1 leading-none">
+                                <label className="font-bold text-sm">Add to My Cellar</label>
+                                <p className="text-[10px] text-muted-foreground">Store in current inventory</p>
                             </div>
                         </div>
-
-                        <FormField control={form.control} name="pairingSuggestions" render={({ field }) => (
-                            <FormItem><FormLabel>Food Pairings</FormLabel><FormControl><Input placeholder="Grilled Lamb, Aged Cheese..." className="bg-card" {...field} /></FormControl></FormItem>
-                        )} />
-                    </div>
-
-                    {/* Destinations Section */}
-                    <div className="bg-primary/10 p-5 rounded-2xl border border-primary/20 shadow-inner">
-                        <h3 className="font-bold text-sm uppercase tracking-wider mb-4 text-primary">Destinations</h3>
-                        <div className="flex flex-col gap-4">
-                            <FormField control={form.control} name="addToCellar" render={({ field }) => (
-                                <FormItem className="flex flex-row items-center space-x-3 space-y-0 bg-card p-3 rounded-lg border">
-                                    <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
-                                    <div className="space-y-1 leading-none">
-                                        <Label className="font-bold">Add to My Cellar</Label>
-                                        <p className="text-[10px] text-muted-foreground">Store in current inventory</p>
-                                    </div>
-                                </FormItem>
-                            )} />
-                            <FormField control={form.control} name="addToWishlist" render={({ field }) => (
-                                <FormItem className="flex flex-row items-center space-x-3 space-y-0 bg-card p-3 rounded-lg border">
-                                    <FormControl><Checkbox checked={field.value} onCheckedChange={field.onChange} /></FormControl>
-                                    <div className="space-y-1 leading-none">
-                                        <Label className="font-bold">Add to Wishlist</Label>
-                                        <p className="text-[10px] text-muted-foreground">Save for future purchase</p>
-                                    </div>
-                                </FormItem>
-                            )} />
+                        <div className="flex flex-row items-center space-x-3 bg-card p-3 rounded-lg border">
+                            <input
+                                type="checkbox"
+                                checked={addToWishlist}
+                                onChange={(e) => setAddToWishlist(e.target.checked)}
+                                className="w-4 h-4 accent-primary"
+                            />
+                            <div className="space-y-1 leading-none">
+                                <label className="font-bold text-sm">Add to Wishlist</label>
+                                <p className="text-[10px] text-muted-foreground">Save for future purchase</p>
+                            </div>
                         </div>
                     </div>
+                </div>
 
-                    <Button type="submit" className="w-full py-8 text-xl font-bold rounded-2xl shadow-[0_8px_30px_rgb(128,0,32,0.3)] border-b-8 border-primary-foreground/20 active:border-b-0 active:translate-y-1 transition-all" disabled={isSubmitting}>
-                        {isSubmitting ? <><Loader2 className="mr-3 h-6 w-6 animate-spin" /> SAVING...</> : "SAVE TO COLLECTION"}
-                    </Button>
-
-                </form>
-            </Form>
+                <button
+                    type="submit"
+                    className="w-full py-8 text-xl font-bold rounded-2xl shadow-[0_8px_30px_rgb(128,0,32,0.3)] border-b-8 border-primary-foreground/20 active:border-b-0 active:translate-y-1 transition-all bg-primary hover:bg-primary/90 text-white"
+                    disabled={isSubmitting}
+                >
+                    {isSubmitting ? (
+                        <span className="flex items-center justify-center gap-3">
+                            <Loader2 className="h-6 w-6 animate-spin" />
+                            SAVING...
+                        </span>
+                    ) : (
+                        "SAVE TO COLLECTION"
+                    )}
+                </button>
+            </form>
         </div>
     )
 }
