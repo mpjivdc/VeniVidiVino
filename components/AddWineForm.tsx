@@ -222,7 +222,7 @@ export function AddWineForm() {
     return (
         <div className="space-y-6 pb-24">
             <div className="text-center py-2">
-                <p className="text-[10px] text-primary font-bold tracking-widest">V2.8-PRO-TASTING-GRID</p>
+                <p className="text-[10px] text-primary font-bold tracking-widest">V2.9-EDIT-SYNCED</p>
             </div>
 
             {/* Scan Button at Top */}
