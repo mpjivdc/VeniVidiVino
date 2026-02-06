@@ -10,11 +10,18 @@ import { WineType } from "@/lib/types"
 const wineTypes: WineType[] = ["Red", "White", "Rose", "Sparkling", "Dessert", "Fortified", "Orange", "Other"]
 
 const tastingNoteOptions = {
-    Fruit: ["Red Cherry", "Raspberry", "Black Plum", "Blackberry", "Lemon", "Green Apple", "Peach", "Apricot"],
-    Floral: ["Rose", "Violet", "Blossom", "Honeysuckle"],
-    "Earthy/Savory": ["Forest Floor", "Mushroom", "Leather", "Tobacco", "Wet Stones"],
-    "Spice & Oak": ["Vanilla", "Cedar", "Black Pepper", "Cloves", "Smoke", "Chocolate"],
-    Structure: ["High Acidity", "Firm Tannins", "Full-Bodied", "Silky", "Crisp"],
+    "Fruit - Citrus": ["Lemon", "Lime", "Grapefruit", "Orange peel"],
+    "Fruit - Stone": ["Peach", "Apricot", "Nectarine", "Cherry"],
+    "Fruit - Red": ["Strawberry", "Raspberry", "Redcurrant", "Cranberry"],
+    "Fruit - Black": ["Blackberry", "Black cherry", "Plum", "Blackcurrant"],
+    "Fruit - Tropical": ["Pineapple", "Mango", "Melon", "Lychee", "Banana"],
+    "Fruit - Dried": ["Fig", "Raisin", "Prune", "Jammy"],
+    "Floral": ["Rose", "Violet", "Honeysuckle", "Orange blossom", "Jasmine"],
+    "Herbal/Vegetal": ["Grass", "Bell pepper", "Asparagus", "Mint", "Eucalyptus", "Tobacco", "Tomato leaf", "Tea"],
+    "Spice": ["Black pepper", "Cinnamon", "Clove", "Vanilla", "Licorice", "Ginger", "Anise"],
+    "Earthy/Mineral": ["Mushroom", "Forest floor", "Wet stones", "Flint", "Chalk", "Dust", "Petroleum"],
+    "Oak/Age": ["Cedar", "Toast", "Smoke", "Caramel", "Butter", "Nutty", "Chocolate", "Coffee", "Leather"],
+    "Mouthfeel": ["High Acidity", "Low Acidity", "Soft Tannins", "Firm Tannins", "Light Body", "Full Body"],
 };
 
 const compressImage = (file: File, maxWidth = 300, quality = 0.4): Promise<File> => {
@@ -215,7 +222,7 @@ export function AddWineForm() {
     return (
         <div className="space-y-6 pb-24">
             <div className="text-center py-2">
-                <p className="text-[10px] text-primary font-bold tracking-widest">V3.0-IOS-NORMALIZE</p>
+                <p className="text-[10px] text-primary font-bold tracking-widest">V2.8-PRO-TASTING-GRID</p>
             </div>
 
             {/* Scan Button at Top */}

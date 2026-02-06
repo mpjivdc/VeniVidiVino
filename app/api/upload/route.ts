@@ -59,7 +59,20 @@ export async function POST(req: NextRequest) {
                 - grapes: An array of grape varieties mentioned on the label.
                 - alcohol: The alcohol percentage as a number (e.g., 14.5).
                 - pairings: Suggest exactly 3 perfect food pairings based on this wine's style as a single string (e.g., "Grilled ribeye, aged cheddar, dark chocolate").
-                - tastingNotes: An array of exactly 3-5 relevant tasting notes from this list: Red Cherry, Raspberry, Black Plum, Blackberry, Lemon, Green Apple, Peach, Apricot, Rose, Violet, Blossom, Honeysuckle, Forest Floor, Mushroom, Leather, Tobacco, Wet Stones, Vanilla, Cedar, Black Pepper, Cloves, Smoke, Chocolate, High Acidity, Firm Tannins, Full-Bodied, Silky, Crisp.
+                - tastingNotes: An array of exactly 4-6 relevant tasting notes from this PROFESSIONAL TASTING GRID. Choose terms that match the wine's style and type:
+                  
+                  FRUIT - Citrus: Lemon, Lime, Grapefruit, Orange peel
+                  FRUIT - Stone: Peach, Apricot, Nectarine, Cherry
+                  FRUIT - Red: Strawberry, Raspberry, Redcurrant, Cranberry
+                  FRUIT - Black: Blackberry, Black cherry, Plum, Blackcurrant
+                  FRUIT - Tropical: Pineapple, Mango, Melon, Lychee, Banana
+                  FRUIT - Dried: Fig, Raisin, Prune, Jammy
+                  FLORAL: Rose, Violet, Honeysuckle, Orange blossom, Jasmine
+                  HERBAL/VEGETAL: Grass, Bell pepper, Asparagus, Mint, Eucalyptus, Tobacco, Tomato leaf, Tea
+                  SPICE: Black pepper, Cinnamon, Clove, Vanilla, Licorice, Ginger, Anise
+                  EARTHY/MINERAL: Mushroom, Forest floor, Wet stones, Flint, Chalk, Dust, Petroleum
+                  OAK/AGE: Cedar, Toast, Smoke, Caramel, Butter, Nutty, Chocolate, Coffee, Leather
+                  MOUTHFEEL: High Acidity, Low Acidity, Soft Tannins, Firm Tannins, Light Body, Full Body
                 
                 Return ONLY raw valid JSON. Do not include markdown formatting or backticks.`;
 
