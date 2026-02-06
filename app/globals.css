@@ -119,7 +119,21 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Force 50/50 grid layout for date and price inputs */
+.force-grid-5050 {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 1rem !important;
+  width: 100% !important;
+}
+
+.force-grid-5050>* {
+  min-width: 0 !important;
+  flex: 1 !important;
 }
