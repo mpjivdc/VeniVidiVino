@@ -215,7 +215,7 @@ export function AddWineForm() {
     return (
         <div className="space-y-6 pb-24">
             <div className="text-center py-2">
-                <p className="text-[10px] text-primary font-bold tracking-widest">V2.7-FORCE-GRID-NOW</p>
+                <p className="text-[10px] text-primary font-bold tracking-widest">V2.8-UNIFORM-STYLING</p>
             </div>
 
             {/* Scan Button at Top */}
@@ -453,24 +453,26 @@ export function AddWineForm() {
                         />
                     </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', width: '100%' }}>
-                        <div className="flex flex-col">
-                            <label className="text-xs font-bold uppercase text-gray-500 mb-1">Date</label>
+                        <div className="flex flex-col" style={{ minWidth: 0 }}>
+                            <label className="block text-sm font-medium mb-2">Date</label>
                             <input
                                 type="date"
                                 value={boughtDate}
                                 onChange={(e) => setBoughtDate(e.target.value)}
-                                className="border p-3 rounded-xl w-full bg-gray-50"
+                                className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                                style={{ minWidth: 0 }}
                             />
                         </div>
-                        <div className="flex flex-col">
-                            <label className="text-xs font-bold uppercase text-gray-500 mb-1">Price paid</label>
+                        <div className="flex flex-col" style={{ minWidth: 0 }}>
+                            <label className="block text-sm font-medium mb-2">Price paid</label>
                             <input
                                 type="number"
                                 step="0.01"
                                 value={price}
                                 onChange={(e) => setPrice(e.target.value)}
                                 placeholder="€"
-                                className="border p-3 rounded-xl w-full bg-gray-50"
+                                className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                                style={{ minWidth: 0 }}
                             />
                         </div>
                     </div>
