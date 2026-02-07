@@ -27,17 +27,17 @@ export function CellarList({ initialWines }: CellarListProps) {
 
     return (
         <>
-            <header className="mb-6 flex items-center justify-between">
+            <header className="mb-8 flex items-center justify-between">
                 <div className="flex flex-col">
-                    <h1 className="text-2xl font-bold tracking-tight text-primary">My Cellar</h1>
-                    <span className="text-xs text-muted-foreground">{bottleCount} bottles in stock</span>
+                    <h1 className="text-2xl font-bold tracking-tight text-foreground">My Cellar</h1>
+                    <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider mt-0.5">{bottleCount} bottles in stock</span>
                 </div>
 
                 <Button
-                    variant={showFinished ? "default" : "outline"}
+                    variant="outline"
                     size="sm"
                     onClick={() => setShowFinished(!showFinished)}
-                    className="rounded-full gap-2 text-xs font-bold transition-all h-9"
+                    className={`rounded-full gap-2 text-[10px] font-bold transition-all h-10 px-4 border-white/10 ${showFinished ? "bg-primary text-white border-primary shadow-lg shadow-primary/20" : "bg-card text-muted-foreground hover:text-foreground hover:bg-white/5"}`}
                 >
                     {showFinished ? <History className="h-3.5 w-3.5" /> : <Filter className="h-3.5 w-3.5" />}
                     {showFinished ? "HIDE FINISHED" : "SHOW FINISHED"}
@@ -45,12 +45,15 @@ export function CellarList({ initialWines }: CellarListProps) {
             </header>
 
             {filteredWines.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
-                    <p>{showFinished ? "No wines found." : "Your cellar is empty or all wines are finished."}</p>
-                    <p className="text-sm">Start adding wines or check history.</p>
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                    <div className="bg-white/5 p-6 rounded-full mb-4">
+                        <Filter className="h-8 w-8 text-muted-foreground opacity-20" />
+                    </div>
+                    <p className="text-foreground font-bold">{showFinished ? "No wines found." : "Your cellar is empty."}</p>
+                    <p className="text-sm text-muted-foreground mt-1 max-w-[200px]">Start adding wines or check history.</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 mb-24">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-24">
                     {filteredWines.map((wine) => (
                         <WineCard
                             key={wine.id}

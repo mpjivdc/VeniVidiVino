@@ -219,287 +219,302 @@ export function AddWineForm() {
         }
     }
 
+    const Label = ({ children }: { children: React.ReactNode }) => (
+        <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 ml-1">
+            {children}
+        </label>
+    );
+
+    const Input = (props: React.InputHTMLAttributes<HTMLInputElement>) => (
+        <input
+            {...props}
+            className={`w-full bg-card border border-white/5 rounded-xl px-4 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-muted-foreground/30 ${props.className || ''}`}
+        />
+    );
+
+    const Select = (props: React.SelectHTMLAttributes<HTMLSelectElement>) => (
+        <select
+            {...props}
+            className={`w-full bg-card border border-white/5 rounded-xl px-4 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary transition-all ${props.className || ''}`}
+        />
+    );
+
     return (
-        <div className="space-y-6 pb-24">
+        <div className="space-y-10 pb-32">
             <div className="text-center py-2">
-                <p className="text-[10px] text-primary font-bold tracking-widest">V3.4-ZERO-FIXED</p>
+                <p className="text-[10px] text-primary font-black tracking-[0.2em] uppercase opacity-80">V4.0-PREMIUM-DARK-MODE</p>
             </div>
 
             {/* Scan Button at Top */}
-            <div className="bg-gradient-to-br from-primary/20 to-primary/5 border-2 border-primary/30 rounded-3xl p-6 shadow-xl">
-                <input
-                    type="file"
-                    id="camera-input"
-                    accept="image/*"
-                    capture="environment"
-                    onChange={handleImageChange}
-                    className="hidden"
-                />
-                <button
-                    type="button"
-                    onClick={() => document.getElementById('camera-input')?.click()}
-                    disabled={isScanning}
-                    className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-6 px-8 rounded-2xl shadow-lg transition-all active:scale-95 flex items-center justify-center gap-3"
-                >
-                    {isScanning ? (
-                        <>
-                            <Loader2 className="h-6 w-6 animate-spin" />
-                            SCANNING...
-                        </>
-                    ) : (
-                        <>
-                            <Camera className="h-6 w-6" />
-                            SCAN WINE LABEL
-                        </>
-                    )}
-                </button>
-                <p className="text-center text-[11px] text-muted-foreground mt-3 italic">
-                    Take a pic and let AI do its job
-                </p>
+            <div className="relative group">
+                <div className="absolute -inset-1 bg-gradient-to-r from-primary to-primary/50 rounded-[2rem] blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
+                <div className="relative bg-card border border-white/5 rounded-[2rem] p-8 shadow-2xl overflow-hidden">
+                    <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-primary/10 rounded-full blur-3xl"></div>
+                    <input
+                        type="file"
+                        id="camera-input"
+                        accept="image/*"
+                        capture="environment"
+                        onChange={handleImageChange}
+                        className="hidden"
+                    />
+                    <button
+                        type="button"
+                        onClick={() => document.getElementById('camera-input')?.click()}
+                        disabled={isScanning}
+                        className="w-full bg-primary hover:bg-primary/90 text-white font-black py-5 px-8 rounded-2xl shadow-[0_10px_30px_rgba(176,48,67,0.3)] transition-all active:scale-[0.98] flex items-center justify-center gap-4 text-sm tracking-widest"
+                    >
+                        {isScanning ? (
+                            <>
+                                <Loader2 className="h-5 w-5 animate-spin" />
+                                SCANNING LABEL...
+                            </>
+                        ) : (
+                            <>
+                                <Camera className="h-5 w-5" />
+                                SCAN WINE LABEL
+                            </>
+                        )}
+                    </button>
+                    <p className="text-center text-[10px] text-muted-foreground mt-4 font-bold tracking-wider uppercase opacity-60">
+                        AI Label Recognition
+                    </p>
+                </div>
             </div>
 
-            <form onSubmit={onSubmit} className="space-y-8">
+            <form onSubmit={onSubmit} className="space-y-12">
                 {/* Identity Section */}
-                <div className="space-y-4">
-                    <div className="flex items-center gap-2 text-primary border-b pb-1">
+                <div className="space-y-6">
+                    <div className="flex items-center gap-3 text-primary border-b border-white/5 pb-2 ml-1">
                         <Info className="w-4 h-4" />
-                        <h3 className="font-bold text-sm uppercase tracking-wider">Identity</h3>
+                        <h3 className="font-black text-[11px] uppercase tracking-[0.2em]">Identity</h3>
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium mb-2">Wine Name</label>
-                        <input
-                            type="text"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="e.g. Sassicaia"
-                            className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                            required
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium mb-2">Producer</label>
-                        <input
-                            type="text"
-                            value={producer}
-                            onChange={(e) => setProducer(e.target.value)}
-                            placeholder="e.g. Tenuta San Guido"
-                            className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                            required
-                        />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-5">
                         <div>
-                            <label className="block text-sm font-medium mb-2">Vintage</label>
-                            <input
-                                type="number"
-                                value={vintage}
-                                onChange={(e) => setVintage(e.target.value)}
-                                placeholder="e.g. 2019"
-                                className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            <Label>Wine Name</Label>
+                            <Input
+                                type="text"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                placeholder="e.g. SASSICAIA"
                                 required
                             />
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium mb-2">Type</label>
-                            <select
-                                value={type}
-                                onChange={(e) => setType(e.target.value as WineType)}
-                                className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                            >
-                                <option value="" disabled>e.g. Red</option>
-                                {wineTypes.map(t => <option key={t} value={t}>{t}</option>)}
-                            </select>
-                        </div>
-                    </div>
 
-                    <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium mb-2">Country</label>
-                            <input
+                            <Label>Producer</Label>
+                            <Input
                                 type="text"
-                                value={country}
-                                onChange={(e) => setCountry(e.target.value)}
-                                placeholder="e.g. Italy"
-                                className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                                value={producer}
+                                onChange={(e) => setProducer(e.target.value)}
+                                placeholder="e.g. TENUTA SAN GUIDO"
+                                required
                             />
                         </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <Label>Vintage</Label>
+                                <Input
+                                    type="number"
+                                    value={vintage}
+                                    onChange={(e) => setVintage(e.target.value)}
+                                    placeholder="e.g. 2019"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <Label>Type</Label>
+                                <Select
+                                    value={type}
+                                    onChange={(e) => setType(e.target.value as WineType)}
+                                >
+                                    <option value="" disabled className="bg-[#1e1e1e]">SELECT TYPE</option>
+                                    {wineTypes.map(t => <option key={t} value={t} className="bg-[#1e1e1e]">{t.toUpperCase()}</option>)}
+                                </Select>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <Label>Country</Label>
+                                <Input
+                                    type="text"
+                                    value={country}
+                                    onChange={(e) => setCountry(e.target.value)}
+                                    placeholder="e.g. ITALY"
+                                />
+                            </div>
+                            <div>
+                                <Label>Region</Label>
+                                <Input
+                                    type="text"
+                                    value={region}
+                                    onChange={(e) => setRegion(e.target.value)}
+                                    placeholder="e.g. TUSCANY"
+                                />
+                            </div>
+                        </div>
+
                         <div>
-                            <label className="block text-sm font-medium mb-2">Region</label>
-                            <input
+                            <Label>Sub-Region</Label>
+                            <Input
                                 type="text"
-                                value={region}
-                                onChange={(e) => setRegion(e.target.value)}
-                                placeholder="e.g. Tuscany"
-                                className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                                value={subRegion}
+                                onChange={(e) => setSubRegion(e.target.value)}
+                                placeholder="e.g. BOLGHERI"
                             />
                         </div>
-                    </div>
 
-                    <div>
-                        <label className="block text-sm font-medium mb-2">Sub-Region</label>
-                        <input
-                            type="text"
-                            value={subRegion}
-                            onChange={(e) => setSubRegion(e.target.value)}
-                            placeholder="e.g. Bolgheri"
-                            className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium mb-2">Grapes</label>
-                        <input
-                            type="text"
-                            value={grapes}
-                            onChange={(e) => setGrapes(e.target.value)}
-                            placeholder="e.g. Cabernet Sauvignon"
-                            className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                        />
-                        <p className="text-[10px] text-muted-foreground mt-1">Comma separated</p>
+                        <div>
+                            <Label>Grapes</Label>
+                            <Input
+                                type="text"
+                                value={grapes}
+                                onChange={(e) => setGrapes(e.target.value)}
+                                placeholder="e.g. CABERNET SAUVIGNON, CABERNET FRANC"
+                            />
+                        </div>
                     </div>
                 </div>
 
-                {/* Specs & Inventory Section */}
-                <div className="space-y-4">
-                    <div className="flex items-center gap-2 text-primary border-b pb-1">
+                {/* Specs Section */}
+                <div className="space-y-6">
+                    <div className="flex items-center gap-3 text-primary border-b border-white/5 pb-2 ml-1">
                         <GlassWater className="w-4 h-4" />
-                        <h3 className="font-bold text-sm uppercase tracking-wider">Specs & Inventory</h3>
+                        <h3 className="font-black text-[11px] uppercase tracking-[0.2em]">Specs & Inventory</h3>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium mb-2">Alcohol %</label>
-                            <input
-                                type="number"
-                                step="0.1"
-                                value={alcoholContent}
-                                onChange={(e) => setAlcoholContent(e.target.value)}
-                                placeholder="e.g. 13.5%"
-                                className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                            />
+                    <div className="space-y-5">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <Label>Alcohol %</Label>
+                                <Input
+                                    type="number"
+                                    step="0.1"
+                                    value={alcoholContent}
+                                    onChange={(e) => setAlcoholContent(e.target.value)}
+                                    placeholder="e.g. 14.0"
+                                />
+                            </div>
+                            <div>
+                                <Label>Bottle Size</Label>
+                                <Input
+                                    type="text"
+                                    value={bottleSize}
+                                    onChange={(e) => setBottleSize(e.target.value)}
+                                    placeholder="e.g. 750ML"
+                                />
+                            </div>
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium mb-2">Size</label>
-                            <input
-                                type="text"
-                                value={bottleSize}
-                                onChange={(e) => setBottleSize(e.target.value)}
-                                placeholder="e.g. 750ml"
-                                className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                            />
-                        </div>
-                    </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium mb-2">Quantity</label>
-                            <input
-                                type="number"
-                                value={quantity}
-                                onChange={(e) => setQuantity(e.target.value)}
-                                className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium mb-2">Location</label>
-                            <input
-                                type="text"
-                                value={location}
-                                onChange={(e) => setLocation(e.target.value)}
-                                placeholder="e.g. Rack A"
-                                className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                            />
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <Label>Quantity</Label>
+                                <Input
+                                    type="number"
+                                    value={quantity}
+                                    onChange={(e) => setQuantity(e.target.value)}
+                                />
+                            </div>
+                            <div>
+                                <Label>Location</Label>
+                                <Input
+                                    type="text"
+                                    value={location}
+                                    onChange={(e) => setLocation(e.target.value)}
+                                    placeholder="e.g. RACK B-12"
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 {/* Timeline Section */}
-                <div className="space-y-4">
-                    <div className="flex items-center gap-2 text-primary border-b pb-1">
+                <div className="space-y-6">
+                    <div className="flex items-center gap-3 text-primary border-b border-white/5 pb-2 ml-1">
                         <Calendar className="w-4 h-4" />
-                        <h3 className="font-bold text-sm uppercase tracking-wider">Timeline</h3>
+                        <h3 className="font-black text-[11px] uppercase tracking-[0.2em]">Timeline</h3>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm font-medium mb-2">Drink From</label>
-                            <input
+                            <Label>Drink From</Label>
+                            <Input
                                 type="number"
                                 value={drinkFrom}
                                 onChange={(e) => setDrinkFrom(e.target.value)}
-                                placeholder="e.g. 2028"
-                                className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                                placeholder="2028"
                             />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium mb-2">Drink To</label>
-                            <input
+                            <Label>Drink To</Label>
+                            <Input
                                 type="number"
                                 value={drinkTo}
                                 onChange={(e) => setDrinkTo(e.target.value)}
-                                placeholder="e.g. 2040"
-                                className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                                placeholder="2045"
                             />
                         </div>
                     </div>
                 </div>
 
-                {/* Purchase Info Section */}
-                <div className="space-y-4">
-                    <div className="flex items-center gap-2 text-primary border-b pb-1">
+                {/* Purchase Section */}
+                <div className="space-y-6">
+                    <div className="flex items-center gap-3 text-primary border-b border-white/5 pb-2 ml-1">
                         <DollarSign className="w-4 h-4" />
-                        <h3 className="font-bold text-sm uppercase tracking-wider">Purchase Info</h3>
+                        <h3 className="font-black text-[11px] uppercase tracking-[0.2em]">Purchase Details</h3>
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium mb-2">Bought At (Shop)</label>
-                        <input
-                            type="text"
-                            value={boughtAt}
-                            onChange={(e) => setBoughtAt(e.target.value)}
-                            placeholder="e.g. Wine Merchants"
-                            className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                        />
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', width: '100%' }}>
-                        <div className="flex flex-col" style={{ minWidth: 0, maxWidth: '100%' }}>
-                            <label className="block text-sm font-medium mb-2">Date</label>
-                            <input
-                                type="date"
-                                value={boughtDate}
-                                onChange={(e) => setBoughtDate(e.target.value)}
-                                placeholder="e.g. Today"
-                                className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                                style={{ minWidth: 0, maxWidth: '100%', width: '100%', boxSizing: 'border-box' }}
+
+                    <div className="space-y-5">
+                        <div>
+                            <Label>Retailer / Source</Label>
+                            <Input
+                                type="text"
+                                value={boughtAt}
+                                onChange={(e) => setBoughtAt(e.target.value)}
+                                placeholder="e.g. ENOTECA PINCHIORRI"
                             />
                         </div>
-                        <div className="flex flex-col" style={{ minWidth: 0, maxWidth: '100%' }}>
-                            <label className="block text-sm font-medium mb-2">Price paid</label>
-                            <input
-                                type="number"
-                                step="0.01"
-                                value={price}
-                                onChange={(e) => setPrice(e.target.value)}
-                                placeholder="e.g. 25"
-                                className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                                style={{ minWidth: 0, maxWidth: '100%', width: '100%', boxSizing: 'border-box' }}
-                            />
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <Label>Date</Label>
+                                <Input
+                                    type="date"
+                                    value={boughtDate}
+                                    onChange={(e) => setBoughtDate(e.target.value)}
+                                />
+                            </div>
+                            <div>
+                                <Label>Price Paid</Label>
+                                <div className="relative">
+                                    <Input
+                                        type="number"
+                                        step="0.01"
+                                        value={price}
+                                        onChange={(e) => setPrice(e.target.value)}
+                                        placeholder="0.00"
+                                        className="pl-8"
+                                    />
+                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-bold">$</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 {/* Review Section */}
-                <div className="space-y-4">
-                    <div className="flex items-center gap-2 text-primary border-b pb-1">
+                <div className="space-y-8">
+                    <div className="flex items-center gap-3 text-primary border-b border-white/5 pb-2 ml-1">
                         <Plus className="w-4 h-4" />
-                        <h3 className="font-bold text-sm uppercase tracking-wider">Review & Notes</h3>
+                        <h3 className="font-black text-[11px] uppercase tracking-[0.2em]">Review & Notes</h3>
                     </div>
 
-                    <div>
-                        <div className="flex justify-between items-center mb-2">
-                            <label className="block text-sm font-medium">Rating</label>
-                            <span className="text-primary font-bold text-lg">{rating}</span>
+                    <div className="bg-white/[0.02] p-6 rounded-2xl border border-white/5">
+                        <div className="flex justify-between items-center mb-6">
+                            <Label>Rating</Label>
+                            <span className="text-primary font-black text-2xl tracking-tighter">{rating.toFixed(1)}</span>
                         </div>
                         <input
                             type="range"
@@ -508,16 +523,21 @@ export function AddWineForm() {
                             step="0.1"
                             value={rating}
                             onChange={(e) => setRating(parseFloat(e.target.value))}
-                            className="w-full h-2 bg-card rounded-lg appearance-none cursor-pointer accent-primary"
+                            className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-primary"
                         />
+                        <div className="flex justify-between mt-2 text-[8px] font-black text-muted-foreground/40 uppercase tracking-widest">
+                            <span>0.0</span>
+                            <span>2.5</span>
+                            <span>5.0</span>
+                        </div>
                     </div>
 
-                    <div className="mt-4">
-                        <label className="mb-4 block text-sm font-bold uppercase tracking-wider text-primary">Tasting Notes</label>
-                        <div className="space-y-6">
+                    <div>
+                        <Label>Tasting Notes</Label>
+                        <div className="space-y-8 mt-4 bg-white/[0.01] p-6 rounded-3xl border border-white/5">
                             {Object.entries(tastingNoteOptions).map(([category, notes]) => (
-                                <div key={category} className="space-y-3">
-                                    <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60">{category}</h4>
+                                <div key={category} className="space-y-4">
+                                    <h4 className="text-[9px] font-black uppercase tracking-[0.2em] text-muted-foreground/40 ml-1">{category}</h4>
                                     <div className="flex flex-wrap gap-2">
                                         {notes.map(note => {
                                             const isSelected = tastingNotes.includes(note);
@@ -526,9 +546,9 @@ export function AddWineForm() {
                                                     key={note}
                                                     type="button"
                                                     onClick={() => toggleNote(note)}
-                                                    className={`px-4 py-2 rounded-full border text-[11px] font-bold transition-all active:scale-95 ${isSelected
-                                                        ? "bg-primary border-primary text-white shadow-lg"
-                                                        : "bg-card border-white/10 text-muted-foreground hover:bg-white/5"
+                                                    className={`px-4 py-2.5 rounded-full border text-[10px] font-black transition-all active:scale-[0.98] tracking-wider uppercase ${isSelected
+                                                        ? "bg-primary border-primary text-white shadow-lg shadow-primary/20"
+                                                        : "bg-[#252525] border-white/5 text-muted-foreground hover:bg-white/5 hover:text-foreground"
                                                         }`}
                                                 >
                                                     {note}
@@ -542,57 +562,64 @@ export function AddWineForm() {
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-2">Food Pairings</label>
-                        <input
+                        <Label>Food Pairings</Label>
+                        <Input
                             type="text"
                             value={pairingSuggestions}
                             onChange={(e) => setPairingSuggestions(e.target.value)}
-                            placeholder="Grilled Lamb, Aged Cheese..."
-                            className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            placeholder="e.g. Bistecca alla Fiorentina"
                         />
                     </div>
                 </div>
 
                 {/* Destinations Section */}
-                <div className="bg-primary/10 p-5 rounded-2xl border border-primary/20 shadow-inner">
-                    <h3 className="font-bold text-sm uppercase tracking-wider mb-4 text-primary">Destinations</h3>
-                    <div className="flex flex-col gap-4">
-                        <div className="flex flex-row items-center space-x-3 bg-card p-3 rounded-lg border">
-                            <input
-                                type="checkbox"
-                                checked={addToCellar}
-                                onChange={(e) => setAddToCellar(e.target.checked)}
-                                className="w-4 h-4 accent-primary"
-                            />
-                            <div className="space-y-1 leading-none">
-                                <label className="font-bold text-sm">Add to My Cellar</label>
-                                <p className="text-[10px] text-muted-foreground">Store in current inventory</p>
+                <div className="bg-primary/5 p-8 rounded-[2rem] border border-primary/10 relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 blur-3xl rounded-full -mr-16 -mt-16"></div>
+                    <Label>Destinations</Label>
+                    <div className="flex flex-col gap-3 mt-4">
+                        <button
+                            type="button"
+                            onClick={() => setAddToCellar(!addToCellar)}
+                            className={`flex items-center justify-between p-4 rounded-xl border transition-all ${addToCellar
+                                ? "bg-primary/10 border-primary/30"
+                                : "bg-card border-white/5"}`}
+                        >
+                            <div className="flex flex-col items-start gap-1">
+                                <span className={`text-xs font-black uppercase tracking-widest ${addToCellar ? "text-primary" : "text-foreground"}`}>My Cellar</span>
+                                <span className="text-[10px] text-muted-foreground font-medium">Add to current inventory</span>
                             </div>
-                        </div>
-                        <div className="flex flex-row items-center space-x-3 bg-card p-3 rounded-lg border">
-                            <input
-                                type="checkbox"
-                                checked={addToWishlist}
-                                onChange={(e) => setAddToWishlist(e.target.checked)}
-                                className="w-4 h-4 accent-primary"
-                            />
-                            <div className="space-y-1 leading-none">
-                                <label className="font-bold text-sm">Add to Wishlist</label>
-                                <p className="text-[10px] text-muted-foreground">Save for future purchase</p>
+                            <div className={`h-5 w-5 rounded-md border-2 flex items-center justify-center transition-all ${addToCellar ? "bg-primary border-primary" : "border-white/10"}`}>
+                                {addToCellar && <Plus className="h-3 w-3 text-white" />}
                             </div>
-                        </div>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setAddToWishlist(!addToWishlist)}
+                            className={`flex items-center justify-between p-4 rounded-xl border transition-all ${addToWishlist
+                                ? "bg-primary/10 border-primary/30"
+                                : "bg-card border-white/5"}`}
+                        >
+                            <div className="flex flex-col items-start gap-1">
+                                <span className={`text-xs font-black uppercase tracking-widest ${addToWishlist ? "text-primary" : "text-foreground"}`}>Wishlist</span>
+                                <span className="text-[10px] text-muted-foreground font-medium">Save for later purchase</span>
+                            </div>
+                            <div className={`h-5 w-5 rounded-md border-2 flex items-center justify-center transition-all ${addToWishlist ? "bg-primary border-primary" : "border-white/10"}`}>
+                                {addToWishlist && <Plus className="h-3 w-3 text-white" />}
+                            </div>
+                        </button>
                     </div>
                 </div>
 
                 <button
                     type="submit"
-                    className="w-full py-8 text-xl font-bold rounded-2xl shadow-[0_8px_30px_rgb(128,0,32,0.3)] border-b-8 border-primary-foreground/20 active:border-b-0 active:translate-y-1 transition-all bg-primary hover:bg-primary/90 text-white"
+                    className="w-full py-6 text-sm font-black uppercase tracking-[0.3em] rounded-2xl shadow-[0_15px_45px_rgba(176,48,67,0.3)] transition-all active:scale-[0.98] bg-primary hover:bg-primary/90 text-white relative overflow-hidden group"
                     disabled={isSubmitting}
                 >
+                    <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 pointer-events-none opacity-0"></div>
                     {isSubmitting ? (
                         <span className="flex items-center justify-center gap-3">
-                            <Loader2 className="h-6 w-6 animate-spin" />
-                            SAVING...
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                            SAVING COLLECTION...
                         </span>
                     ) : (
                         "SAVE TO COLLECTION"

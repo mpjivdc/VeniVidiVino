@@ -98,20 +98,20 @@ export function WineCard({ wine, sheetTitle, onQuantityChange }: WineCardProps) 
     return (
         <Drawer open={isOpen} onOpenChange={setIsOpen}>
             <DrawerTrigger asChild>
-                <Card className={`overflow-hidden border-border/40 bg-card/50 backdrop-blur-sm transition-all hover:bg-card/80 active:scale-[0.98] cursor-pointer relative ${optimisticQuantity === 0 ? "opacity-60" : ""}`}>
+                <Card className={`overflow-hidden border-white/5 bg-card rounded-xl shadow-lg transition-all hover:bg-white/[0.02] active:scale-[0.98] cursor-pointer relative ${optimisticQuantity === 0 ? "opacity-50" : ""}`}>
                     {optimisticQuantity === 0 && (
                         <div className="absolute top-2 right-12 z-10 transition-all scale-110">
-                            <Badge variant="destructive" className="text-[9px] px-1 py-0 shadow-lg border border-white/20 uppercase font-black">Finished</Badge>
+                            <Badge variant="destructive" className="bg-primary hover:bg-primary text-[9px] px-2 py-0.5 shadow-lg border-none uppercase font-black tracking-wider">Finished</Badge>
                         </div>
                     )}
                     {windowStatus && (
-                        <div className="absolute top-2 right-2 z-10">
+                        <div className="absolute top-3 right-3 z-10">
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <div className={`w-3 h-3 rounded-full ${windowStatus.color} shadow-sm border border-white/20`} />
+                                        <div className={`w-2.5 h-2.5 rounded-full ${windowStatus.color.replace('bg-', 'bg-')} shadow-sm shadow-black/50`} />
                                     </TooltipTrigger>
-                                    <TooltipContent>
+                                    <TooltipContent className="bg-popover text-foreground border-white/10">
                                         <p className="text-xs font-semibold">{windowStatus.label}</p>
                                         <p className="text-[10px] opacity-70">Window: {wine.drinkFrom} - {wine.drinkTo}</p>
                                     </TooltipContent>
@@ -120,7 +120,7 @@ export function WineCard({ wine, sheetTitle, onQuantityChange }: WineCardProps) 
                         </div>
                     )}
                     <CardContent className="p-0 flex h-32">
-                        <div className="w-24 relative bg-muted shrink-0">
+                        <div className="w-24 relative bg-black/20 shrink-0">
                             {wine.image ? (
                                 <img
                                     src={wine.image}
@@ -128,54 +128,49 @@ export function WineCard({ wine, sheetTitle, onQuantityChange }: WineCardProps) 
                                     className="object-cover w-full h-full"
                                 />
                             ) : (
-                                <div className="flex h-full items-center justify-center text-muted-foreground text-xs p-2 text-center">
+                                <div className="flex h-full items-center justify-center text-muted-foreground text-[10px] p-2 text-center uppercase font-bold tracking-tighter opacity-50">
                                     No Image
                                 </div>
                             )}
                         </div>
-                        <div className="flex-1 p-3 flex flex-col justify-between">
+                        <div className="flex-1 p-4 flex flex-col justify-between">
                             <div>
                                 <div className="flex justify-between items-start mb-1">
-                                    <h3 className="font-semibold text-sm line-clamp-2 leading-tight pr-4">
+                                    <h3 className="font-bold text-sm line-clamp-2 leading-tight pr-4 text-foreground">
                                         {countryFlag && <span className="mr-1.5">{countryFlag}</span>}
                                         {wine.name}
                                     </h3>
                                     {wine.rating && (
-                                        <div className="flex items-center bg-primary/20 px-1.5 py-0.5 rounded text-xs text-primary font-medium shrink-0 ml-2">
+                                        <div className="flex items-center text-primary font-black text-xs shrink-0 ml-2">
                                             {wine.rating}
                                         </div>
                                     )}
                                 </div>
-                                <p className="text-xs text-muted-foreground line-clamp-1">{wine.producer}</p>
-                                {wine.country && <p className="text-[10px] text-muted-foreground opacity-80">{wine.region ? `${wine.region}, ` : ''}{wine.country}</p>}
+                                <p className="text-[11px] text-muted-foreground font-medium line-clamp-1">{wine.producer}</p>
+                                {wine.country && <p className="text-[10px] text-muted-foreground opacity-60 mt-0.5">{wine.region ? `${wine.region}, ` : ''}{wine.country}</p>}
                             </div>
                             <div className="flex items-center gap-2 mt-2 overflow-hidden">
-                                <div className="flex items-center bg-secondary/50 rounded-md border border-border/30 px-1 shrink-0">
+                                <div className="flex items-center bg-white/5 rounded-full border border-white/5 px-1 shrink-0">
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="h-6 w-6 rounded-sm hover:bg-background/50"
+                                        className="h-6 w-6 rounded-full hover:bg-white/10 text-muted-foreground"
                                         onClick={(e) => handleQuantityChange(e, -1)}
                                     >
                                         <Minus className="h-3 w-3" />
                                     </Button>
-                                    <span className="text-[10px] font-bold min-w-[1.2rem] text-center">{optimisticQuantity}</span>
+                                    <span className="text-[11px] font-black min-w-[1.2rem] text-center text-foreground">{optimisticQuantity}</span>
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="h-6 w-6 rounded-sm hover:bg-background/50"
+                                        className="h-6 w-6 rounded-full hover:bg-white/10 text-muted-foreground"
                                         onClick={(e) => handleQuantityChange(e, 1)}
                                     >
                                         <Plus className="h-3 w-3" />
                                     </Button>
                                 </div>
-                                <Badge variant="secondary" className="text-[10px] px-1.5 h-6 shrink-0">{wine.vintage}</Badge>
-                                <Badge variant="outline" className="text-[10px] px-1.5 h-6 border-primary/30 text-primary shrink-0 truncate">{wine.type}</Badge>
-                                {wine.tastingNotes?.slice(0, 2).map((note: string) => (
-                                    <Badge key={note} variant="secondary" className="text-[10px] px-1.5 h-6 bg-primary/5 text-primary/70 border-none shrink-0 hidden sm:flex">
-                                        {note}
-                                    </Badge>
-                                ))}
+                                <Badge variant="secondary" className="bg-white/5 text-muted-foreground text-[9px] px-2 h-6 shrink-0 border-none font-bold">{wine.vintage}</Badge>
+                                <Badge variant="outline" className="text-[9px] px-2 h-6 border-primary/30 text-primary shrink-0 truncate font-bold uppercase tracking-wider">{wine.type}</Badge>
                             </div>
                         </div>
                     </CardContent>
