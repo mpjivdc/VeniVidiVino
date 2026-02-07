@@ -32,7 +32,7 @@ const tastingNoteOptions = {
 
 export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProps) {
     <div className="text-center py-2">
-        <p className="text-[10px] text-primary font-bold tracking-widest">V4.2-FINAL-POLISH</p>
+        <p className="text-[10px] text-primary font-bold tracking-widest">V4.3-DYNAMIC-FILTERS</p>
     </div>
 
     // Form state - initialized with wine data
@@ -136,7 +136,7 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
         return (
             <div className="flex flex-col h-screen bg-background overflow-y-auto">
                 <div className="text-center py-2">
-                    <p className="text-[10px] text-primary font-bold tracking-widest">V4.2-FINAL-POLISH</p>
+                    <p className="text-[10px] text-primary font-bold tracking-widest">V4.3-DYNAMIC-FILTERS</p>
                 </div>
 
                 {/* Header */}
@@ -290,7 +290,7 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
     return (
         <div className="flex flex-col h-screen bg-background overflow-y-auto">
             <div className="text-center py-2">
-                <p className="text-[10px] text-primary font-bold tracking-widest">V4.2-FINAL-POLISH</p>
+                <p className="text-[10px] text-primary font-bold tracking-widest">V4.3-DYNAMIC-FILTERS</p>
             </div>
 
             {/* Header */}

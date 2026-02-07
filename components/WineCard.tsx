@@ -16,7 +16,7 @@ import { Plus, Minus, Wine } from "lucide-react"
 import { Button } from "./ui/button"
 import { updateQuantityAction } from "@/lib/actions"
 
-const getFlag = (countryName: string) => {
+export const getFlag = (countryName: string) => {
     const flags: Record<string, string> = {
         "France": "🇫🇷",
         "Italy": "🇮🇹",
