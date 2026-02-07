@@ -50,8 +50,15 @@ export function WineCard({ wine, sheetTitle }: WineCardProps) {
 
     const handleQuantityChange = async (e: React.MouseEvent, delta: number) => {
         e.stopPropagation();
-        const next = Math.max(0, optimisticQuantity + delta);
+        let next = Math.max(0, optimisticQuantity + delta);
         if (next === optimisticQuantity) return;
+
+        // Last bottle confirmation logic
+        if (optimisticQuantity === 1 && delta === -1) {
+            const confirmed = window.confirm("Was this your last bottle? This wine will be moved to your history.");
+            if (!confirmed) return;
+            next = 0;
+        }
 
         setOptimisticQuantity(next);
         const result = await updateQuantityAction(wine.id, next, sheetTitle);

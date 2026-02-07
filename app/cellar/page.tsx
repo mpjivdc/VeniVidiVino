@@ -4,7 +4,8 @@ import { WineCard } from "@/components/WineCard";
 
 
 export default async function Home() {
-  const wines = await getWines("Cellar");
+  const allWines = await getWines("Cellar");
+  const wines = allWines.filter(w => w.quantity > 0);
 
   return (
     <div className="container mx-auto px-4 py-6">
@@ -15,7 +16,7 @@ export default async function Home() {
 
       {wines.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
-          <p>Your cellar is empty.</p>
+          <p>Your cellar is empty or all wines are in history.</p>
           <p className="text-sm">Start adding wines to track your collection.</p>
         </div>
       ) : (
