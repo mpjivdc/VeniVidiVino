@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Loader2, Camera, Calendar, DollarSign, GlassWater, Info, Plus } from "lucide-react"
+import { Camera, Loader2, Info, GlassWater, Calendar, Euro, Plus, X, Check, Filter, History } from "lucide-react"
 import { createWine } from "@/lib/actions"
 import { WineType } from "@/lib/types"
 
@@ -242,7 +242,7 @@ export function AddWineForm() {
     return (
         <div className="space-y-10 pb-32">
             <div className="text-center py-2">
-                <p className="text-[10px] text-primary font-black tracking-[0.2em] uppercase opacity-80">V4.0-PREMIUM-DARK-MODE</p>
+                <p className="text-[10px] text-primary font-black tracking-[0.2em] uppercase opacity-80">V4.1-SAVE-FIXED</p>
             </div>
 
             {/* Scan Button at Top */}
@@ -261,8 +261,8 @@ export function AddWineForm() {
                     <button
                         type="button"
                         onClick={() => document.getElementById('camera-input')?.click()}
-                        disabled={isScanning}
-                        className="w-full bg-primary hover:bg-primary/90 text-white font-black py-5 px-8 rounded-2xl shadow-[0_10px_30px_rgba(176,48,67,0.3)] transition-all active:scale-[0.98] flex items-center justify-center gap-4 text-sm tracking-widest"
+                        disabled={isScanning || isSubmitting}
+                        className="w-full bg-primary hover:bg-primary/90 text-white font-black py-5 px-8 rounded-2xl shadow-[0_10px_30px_rgba(176,48,67,0.3)] transition-all active:scale-[0.98] flex items-center justify-center gap-4 text-sm tracking-widest disabled:opacity-50"
                     >
                         {isScanning ? (
                             <>
@@ -297,8 +297,9 @@ export function AddWineForm() {
                                 type="text"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
-                                placeholder="e.g. SASSICAIA"
+                                placeholder="e.g. Sassicaia"
                                 required
+                                disabled={isSubmitting}
                             />
                         </div>
 
@@ -308,8 +309,9 @@ export function AddWineForm() {
                                 type="text"
                                 value={producer}
                                 onChange={(e) => setProducer(e.target.value)}
-                                placeholder="e.g. TENUTA SAN GUIDO"
+                                placeholder="e.g. Tenuta San Guido"
                                 required
+                                disabled={isSubmitting}
                             />
                         </div>
 
@@ -322,6 +324,7 @@ export function AddWineForm() {
                                     onChange={(e) => setVintage(e.target.value)}
                                     placeholder="e.g. 2019"
                                     required
+                                    disabled={isSubmitting}
                                 />
                             </div>
                             <div>
@@ -329,8 +332,9 @@ export function AddWineForm() {
                                 <Select
                                     value={type}
                                     onChange={(e) => setType(e.target.value as WineType)}
+                                    disabled={isSubmitting}
                                 >
-                                    <option value="" disabled className="bg-[#1e1e1e]">SELECT TYPE</option>
+                                    <option value="" disabled className="bg-[#1e1e1e]">Select type</option>
                                     {wineTypes.map(t => <option key={t} value={t} className="bg-[#1e1e1e]">{t.toUpperCase()}</option>)}
                                 </Select>
                             </div>
@@ -343,7 +347,8 @@ export function AddWineForm() {
                                     type="text"
                                     value={country}
                                     onChange={(e) => setCountry(e.target.value)}
-                                    placeholder="e.g. ITALY"
+                                    placeholder="e.g. Italy"
+                                    disabled={isSubmitting}
                                 />
                             </div>
                             <div>
@@ -352,7 +357,8 @@ export function AddWineForm() {
                                     type="text"
                                     value={region}
                                     onChange={(e) => setRegion(e.target.value)}
-                                    placeholder="e.g. TUSCANY"
+                                    placeholder="e.g. Tuscany"
+                                    disabled={isSubmitting}
                                 />
                             </div>
                         </div>
@@ -363,7 +369,8 @@ export function AddWineForm() {
                                 type="text"
                                 value={subRegion}
                                 onChange={(e) => setSubRegion(e.target.value)}
-                                placeholder="e.g. BOLGHERI"
+                                placeholder="e.g. Bolgheri"
+                                disabled={isSubmitting}
                             />
                         </div>
 
@@ -373,7 +380,8 @@ export function AddWineForm() {
                                 type="text"
                                 value={grapes}
                                 onChange={(e) => setGrapes(e.target.value)}
-                                placeholder="e.g. CABERNET SAUVIGNON, CABERNET FRANC"
+                                placeholder="e.g. Cabernet Sauvignon, Cabernet Franc"
+                                disabled={isSubmitting}
                             />
                         </div>
                     </div>
@@ -396,6 +404,7 @@ export function AddWineForm() {
                                     value={alcoholContent}
                                     onChange={(e) => setAlcoholContent(e.target.value)}
                                     placeholder="e.g. 14.0"
+                                    disabled={isSubmitting}
                                 />
                             </div>
                             <div>
@@ -404,7 +413,8 @@ export function AddWineForm() {
                                     type="text"
                                     value={bottleSize}
                                     onChange={(e) => setBottleSize(e.target.value)}
-                                    placeholder="e.g. 750ML"
+                                    placeholder="e.g. 750ml"
+                                    disabled={isSubmitting}
                                 />
                             </div>
                         </div>
@@ -416,6 +426,7 @@ export function AddWineForm() {
                                     type="number"
                                     value={quantity}
                                     onChange={(e) => setQuantity(e.target.value)}
+                                    disabled={isSubmitting}
                                 />
                             </div>
                             <div>
@@ -424,7 +435,8 @@ export function AddWineForm() {
                                     type="text"
                                     value={location}
                                     onChange={(e) => setLocation(e.target.value)}
-                                    placeholder="e.g. RACK B-12"
+                                    placeholder="e.g. Rack B-12"
+                                    disabled={isSubmitting}
                                 />
                             </div>
                         </div>
@@ -445,6 +457,7 @@ export function AddWineForm() {
                                 value={drinkFrom}
                                 onChange={(e) => setDrinkFrom(e.target.value)}
                                 placeholder="2028"
+                                disabled={isSubmitting}
                             />
                         </div>
                         <div>
@@ -454,6 +467,7 @@ export function AddWineForm() {
                                 value={drinkTo}
                                 onChange={(e) => setDrinkTo(e.target.value)}
                                 placeholder="2045"
+                                disabled={isSubmitting}
                             />
                         </div>
                     </div>
@@ -462,8 +476,8 @@ export function AddWineForm() {
                 {/* Purchase Section */}
                 <div className="space-y-6">
                     <div className="flex items-center gap-3 text-primary border-b border-white/5 pb-2 ml-1">
-                        <DollarSign className="w-4 h-4" />
-                        <h3 className="font-black text-[11px] uppercase tracking-[0.2em]">Purchase Details</h3>
+                        <Euro className="w-4 h-4" />
+                        <h3 className="font-black text-[11px] uppercase tracking-[0.2em]">€ Purchase Details</h3>
                     </div>
 
                     <div className="space-y-5">
@@ -473,7 +487,8 @@ export function AddWineForm() {
                                 type="text"
                                 value={boughtAt}
                                 onChange={(e) => setBoughtAt(e.target.value)}
-                                placeholder="e.g. ENOTECA PINCHIORRI"
+                                placeholder="e.g. Enoteca Pinchiorri"
+                                disabled={isSubmitting}
                             />
                         </div>
 
@@ -484,6 +499,7 @@ export function AddWineForm() {
                                     type="date"
                                     value={boughtDate}
                                     onChange={(e) => setBoughtDate(e.target.value)}
+                                    disabled={isSubmitting}
                                 />
                             </div>
                             <div>
@@ -496,8 +512,9 @@ export function AddWineForm() {
                                         onChange={(e) => setPrice(e.target.value)}
                                         placeholder="0.00"
                                         className="pl-8"
+                                        disabled={isSubmitting}
                                     />
-                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-bold">$</span>
+                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-bold">€</span>
                                 </div>
                             </div>
                         </div>
@@ -524,6 +541,7 @@ export function AddWineForm() {
                             value={rating}
                             onChange={(e) => setRating(parseFloat(e.target.value))}
                             className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-primary"
+                            disabled={isSubmitting}
                         />
                         <div className="flex justify-between mt-2 text-[8px] font-black text-muted-foreground/40 uppercase tracking-widest">
                             <span>0.0</span>
@@ -545,11 +563,12 @@ export function AddWineForm() {
                                                 <button
                                                     key={note}
                                                     type="button"
-                                                    onClick={() => toggleNote(note)}
+                                                    onClick={() => !isSubmitting && toggleNote(note)}
                                                     className={`px-4 py-2.5 rounded-full border text-[10px] font-black transition-all active:scale-[0.98] tracking-wider uppercase ${isSelected
                                                         ? "bg-primary border-primary text-white shadow-lg shadow-primary/20"
                                                         : "bg-[#252525] border-white/5 text-muted-foreground hover:bg-white/5 hover:text-foreground"
-                                                        }`}
+                                                        } ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
+                                                    disabled={isSubmitting}
                                                 >
                                                     {note}
                                                 </button>
@@ -568,6 +587,7 @@ export function AddWineForm() {
                             value={pairingSuggestions}
                             onChange={(e) => setPairingSuggestions(e.target.value)}
                             placeholder="e.g. Bistecca alla Fiorentina"
+                            disabled={isSubmitting}
                         />
                     </div>
                 </div>
@@ -579,10 +599,11 @@ export function AddWineForm() {
                     <div className="flex flex-col gap-3 mt-4">
                         <button
                             type="button"
-                            onClick={() => setAddToCellar(!addToCellar)}
+                            onClick={() => !isSubmitting && setAddToCellar(!addToCellar)}
                             className={`flex items-center justify-between p-4 rounded-xl border transition-all ${addToCellar
                                 ? "bg-primary/10 border-primary/30"
-                                : "bg-card border-white/5"}`}
+                                : "bg-card border-white/5"} ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
+                            disabled={isSubmitting}
                         >
                             <div className="flex flex-col items-start gap-1">
                                 <span className={`text-xs font-black uppercase tracking-widest ${addToCellar ? "text-primary" : "text-foreground"}`}>My Cellar</span>
@@ -594,10 +615,11 @@ export function AddWineForm() {
                         </button>
                         <button
                             type="button"
-                            onClick={() => setAddToWishlist(!addToWishlist)}
+                            onClick={() => !isSubmitting && setAddToWishlist(!addToWishlist)}
                             className={`flex items-center justify-between p-4 rounded-xl border transition-all ${addToWishlist
                                 ? "bg-primary/10 border-primary/30"
-                                : "bg-card border-white/5"}`}
+                                : "bg-card border-white/5"} ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
+                            disabled={isSubmitting}
                         >
                             <div className="flex flex-col items-start gap-1">
                                 <span className={`text-xs font-black uppercase tracking-widest ${addToWishlist ? "text-primary" : "text-foreground"}`}>Wishlist</span>
@@ -612,14 +634,14 @@ export function AddWineForm() {
 
                 <button
                     type="submit"
-                    className="w-full py-6 text-sm font-black uppercase tracking-[0.3em] rounded-2xl shadow-[0_15px_45px_rgba(176,48,67,0.3)] transition-all active:scale-[0.98] bg-primary hover:bg-primary/90 text-white relative overflow-hidden group"
+                    className="w-full py-6 text-sm font-black uppercase tracking-[0.3em] rounded-2xl shadow-[0_15px_45px_rgba(176,48,67,0.3)] transition-all active:scale-[0.98] bg-primary hover:bg-primary/90 text-white relative overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={isSubmitting}
                 >
                     <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 pointer-events-none opacity-0"></div>
                     {isSubmitting ? (
                         <span className="flex items-center justify-center gap-3">
                             <Loader2 className="h-5 w-5 animate-spin" />
-                            SAVING COLLECTION...
+                            SAVING...
                         </span>
                     ) : (
                         "SAVE TO COLLECTION"

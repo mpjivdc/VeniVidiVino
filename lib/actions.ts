@@ -100,21 +100,49 @@ export async function updateWineAction(id: string, formData: FormData, sheetTitl
     try {
         const updates: Partial<Wine> = {};
 
-        if (formData.has("quantity")) updates.quantity = parseInt(formData.get("quantity") as string);
-        if (formData.has("rating")) updates.rating = parseFloat(formData.get("rating") as string);
-
-        const tastingNotes = formData.getAll("tastingNotes") as string[];
-        if (tastingNotes.length > 0) updates.tastingNotes = tastingNotes;
-
+        // Identity
         if (formData.has("name")) updates.name = formData.get("name") as string;
         if (formData.has("producer")) updates.producer = formData.get("producer") as string;
         if (formData.has("vintage")) updates.vintage = parseInt(formData.get("vintage") as string);
+        if (formData.has("type")) updates.type = formData.get("type") as WineType;
+        if (formData.has("country")) updates.country = formData.get("country") as string;
+        if (formData.has("region")) updates.region = formData.get("region") as string;
+        if (formData.has("subRegion")) updates.subRegion = formData.get("subRegion") as string;
+        if (formData.has("grapes")) {
+            const grapesRaw = formData.getAll("grapes") as string[];
+            updates.grapes = grapesRaw.length === 1 && grapesRaw[0].includes(",")
+                ? grapesRaw[0].split(",").map(g => g.trim())
+                : grapesRaw;
+        }
+
+        // Specs
+        if (formData.has("alcoholContent")) updates.alcoholContent = parseFloat(formData.get("alcoholContent") as string);
+        if (formData.has("bottleSize")) updates.bottleSize = formData.get("bottleSize") as string;
+
+        // Inventory
+        if (formData.has("quantity")) updates.quantity = parseInt(formData.get("quantity") as string);
         if (formData.has("location")) updates.location = formData.get("location") as string;
 
+        // Timeline
+        if (formData.has("drinkFrom")) updates.drinkFrom = parseInt(formData.get("drinkFrom") as string);
+        if (formData.has("drinkTo")) updates.drinkTo = parseInt(formData.get("drinkTo") as string);
+        if (formData.has("boughtAt")) updates.boughtAt = formData.get("boughtAt") as string;
+        if (formData.has("boughtDate")) updates.boughtDate = formData.get("boughtDate") as string;
+        if (formData.has("price")) updates.price = parseFloat(formData.get("price") as string);
+
+        // Review
+        if (formData.has("rating")) updates.rating = parseFloat(formData.get("rating") as string);
+        const tastingNotes = formData.getAll("tastingNotes") as string[];
+        if (tastingNotes.length > 0) updates.tastingNotes = tastingNotes;
+        if (formData.has("pairingSuggestions")) updates.pairingSuggestions = formData.get("pairingSuggestions") as string;
+
         await updateWine(id, updates, sheetTitle);
+
         revalidatePath("/");
         revalidatePath("/cellar");
         revalidatePath("/wishlist");
+        revalidatePath(`/wine/${id}`);
+
         return { success: true };
     } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);

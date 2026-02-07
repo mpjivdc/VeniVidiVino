@@ -5,7 +5,7 @@ import { Wine, WineType } from "@/lib/types"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { updateWineAction, deleteWineAction } from "@/lib/actions"
-import { Loader2, Edit2, Trash2, Check, X, Calendar, DollarSign, GlassWater, Info, Plus } from "lucide-react"
+import { Loader2, Edit2, Trash2, Check, X, Calendar, Euro, GlassWater, Info, Plus } from "lucide-react"
 
 interface WineDetailViewProps {
     wine: Wine
@@ -31,11 +31,14 @@ const tastingNoteOptions = {
 };
 
 export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProps) {
+    <div className="text-center py-2">
+        <p className="text-[10px] text-primary font-bold tracking-widest">V4.1-SAVE-FIXED</p>
+    </div>
+
+    // Form state - initialized with wine data
     const [isEditing, setIsEditing] = useState(false)
     const [isSaving, setIsSaving] = useState(false)
     const [isDeleting, setIsDeleting] = useState(false)
-
-    // Form state - initialized with wine data
     const [name, setName] = useState(wine.name)
     const [producer, setProducer] = useState(wine.producer)
     const [vintage, setVintage] = useState(wine.vintage.toString())
@@ -131,7 +134,7 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
         return (
             <div className="flex flex-col h-screen bg-background overflow-y-auto">
                 <div className="text-center py-2">
-                    <p className="text-[10px] text-primary font-bold tracking-widest">V2.9-EDIT-SYNCED</p>
+                    <p className="text-[10px] text-primary font-bold tracking-widest">V4.1-SAVE-FIXED</p>
                 </div>
 
                 {/* Header */}
@@ -272,7 +275,7 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
     return (
         <div className="flex flex-col h-screen bg-background overflow-y-auto">
             <div className="text-center py-2">
-                <p className="text-[10px] text-primary font-bold tracking-widest">V2.9-EDIT-SYNCED</p>
+                <p className="text-[10px] text-primary font-bold tracking-widest">V4.1-SAVE-FIXED</p>
             </div>
 
             {/* Header */}
@@ -470,8 +473,8 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
                 {/* Purchase Info Section */}
                 <div className="space-y-4">
                     <div className="flex items-center gap-2 text-primary border-b pb-1">
-                        <DollarSign className="w-4 h-4" />
-                        <h3 className="font-bold text-sm uppercase tracking-wider">Purchase Info</h3>
+                        <Euro className="w-4 h-4" />
+                        <h3 className="font-bold text-sm uppercase tracking-wider">€ Purchase Info</h3>
                     </div>
                     <div>
                         <label className="block text-sm font-medium mb-2">Bought At (Shop)</label>
