@@ -88,7 +88,12 @@ export function WineCard({ wine, sheetTitle }: WineCardProps) {
     return (
         <Drawer open={isOpen} onOpenChange={setIsOpen}>
             <DrawerTrigger asChild>
-                <Card className="overflow-hidden border-border/40 bg-card/50 backdrop-blur-sm transition-all hover:bg-card/80 active:scale-[0.98] cursor-pointer relative">
+                <Card className={`overflow-hidden border-border/40 bg-card/50 backdrop-blur-sm transition-all hover:bg-card/80 active:scale-[0.98] cursor-pointer relative ${optimisticQuantity === 0 ? "opacity-60" : ""}`}>
+                    {optimisticQuantity === 0 && (
+                        <div className="absolute top-2 right-12 z-10 transition-all scale-110">
+                            <Badge variant="destructive" className="text-[9px] px-1 py-0 shadow-lg border border-white/20 uppercase font-black">Finished</Badge>
+                        </div>
+                    )}
                     {windowStatus && (
                         <div className="absolute top-2 right-2 z-10">
                             <TooltipProvider>

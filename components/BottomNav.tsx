@@ -40,15 +40,6 @@ export function BottomNav() {
                     <Heart className="h-5 w-5" />
                     <span className="text-[10px] uppercase tracking-tighter">Wishlist</span>
                 </Link>
-
-                <Link
-                    href="/history"
-                    className={`flex flex-col items-center gap-1 transition-all ${isActive("/history") ? "text-primary scale-110 font-bold" : "text-muted-foreground hover:text-foreground"
-                        }`}
-                >
-                    <FileText className="h-5 w-5" />
-                    <span className="text-[10px] uppercase tracking-tighter">History</span>
-                </Link>
             </nav>
         </div>
     )

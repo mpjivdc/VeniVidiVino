@@ -138,15 +138,21 @@ export async function deleteWineAction(id: string, sheetTitle: "Cellar" | "Wishl
 }
 export async function updateQuantityAction(id: string, newQuantity: number, sheetTitle: "Cellar" | "Wishlist") {
     try {
+        console.log(`[Action] updateQuantityAction: ID=${id}, Quantity=${newQuantity}, Sheet=${sheetTitle}`);
         const updates: Partial<Wine> = { quantity: newQuantity };
         await updateWine(id, updates, sheetTitle);
+
         revalidatePath("/");
         revalidatePath("/cellar");
         revalidatePath("/wishlist");
+
+        console.log(`[Action] updateQuantityAction SUCCESS`);
         return { success: true };
     } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
-        console.error("Quantity update error:", message);
+        console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        console.error("QUANTITY UPDATE ERROR:", message);
+        console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         return { success: false, error: message };
     }
 }

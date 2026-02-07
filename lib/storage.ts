@@ -149,20 +149,26 @@ export async function updateWine(id: string, updates: Partial<Wine>, sheetTitle:
 
     await sheet.loadHeaderRow();
     const rows = await sheet.getRows();
-    const row = rows.find((r) => r.get("id") === id);
+    // We use "Status" column as our internal ID
+    const row = rows.find((r) => r.get("Status") === id);
+
     if (row) {
+        console.log(`[Storage] Updating row for ID: ${id} in ${sheetTitle}`);
         const serializedUpdates: Record<string, string | number | string[] | undefined> = { ...updates };
+
         if (updates.tastingNotes) serializedUpdates.tastingNotes = JSON.stringify(updates.tastingNotes);
         if (updates.grapes) serializedUpdates.grapes = JSON.stringify(updates.grapes);
-        if (updates.image) {
-            serializedUpdates.image = updates.image;
-        }
 
         Object.entries(serializedUpdates).forEach(([key, value]) => {
-            if (value !== undefined && value !== null && key !== "id") {
-                row.set(key, value.toString());
+            const header = KEY_TO_HEADER[key];
+            if (header && value !== undefined && value !== null && key !== "id") {
+                console.log(`[Storage] Writing ${value} to column: ${header}`);
+                row.set(header, value.toString());
             }
         });
         await row.save();
+        console.log(`[Storage] Save successful for ID: ${id}`);
+    } else {
+        console.warn(`[Storage] Row NOT FOUND for ID: ${id} in ${sheetTitle}`);
     }
 }
