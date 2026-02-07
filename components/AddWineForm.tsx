@@ -77,14 +77,14 @@ export function AddWineForm() {
     // Form state
     const [name, setName] = useState("")
     const [producer, setProducer] = useState("")
-    const [vintage, setVintage] = useState(new Date().getFullYear().toString())
-    const [type, setType] = useState<WineType>("Red")
+    const [vintage, setVintage] = useState("")
+    const [type, setType] = useState<WineType | "">("")
     const [country, setCountry] = useState("")
     const [region, setRegion] = useState("")
     const [subRegion, setSubRegion] = useState("")
     const [grapes, setGrapes] = useState("")
     const [alcoholContent, setAlcoholContent] = useState("")
-    const [bottleSize, setBottleSize] = useState("750ml")
+    const [bottleSize, setBottleSize] = useState("")
     const [quantity, setQuantity] = useState("1")
     const [location, setLocation] = useState("")
     const [drinkFrom, setDrinkFrom] = useState("")
@@ -222,7 +222,7 @@ export function AddWineForm() {
     return (
         <div className="space-y-6 pb-24">
             <div className="text-center py-2">
-                <p className="text-[10px] text-primary font-bold tracking-widest">V2.9-EDIT-SYNCED</p>
+                <p className="text-[10px] text-primary font-bold tracking-widest">V3.0-GEMINI-POLISH</p>
             </div>
 
             {/* Scan Button at Top */}
@@ -297,6 +297,7 @@ export function AddWineForm() {
                                 type="number"
                                 value={vintage}
                                 onChange={(e) => setVintage(e.target.value)}
+                                placeholder="e.g. 2019"
                                 className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                                 required
                             />
@@ -308,6 +309,7 @@ export function AddWineForm() {
                                 onChange={(e) => setType(e.target.value as WineType)}
                                 className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                             >
+                                <option value="" disabled>e.g. Red</option>
                                 {wineTypes.map(t => <option key={t} value={t}>{t}</option>)}
                             </select>
                         </div>
@@ -320,7 +322,7 @@ export function AddWineForm() {
                                 type="text"
                                 value={country}
                                 onChange={(e) => setCountry(e.target.value)}
-                                placeholder="Italy"
+                                placeholder="e.g. Italy"
                                 className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                             />
                         </div>
@@ -330,7 +332,7 @@ export function AddWineForm() {
                                 type="text"
                                 value={region}
                                 onChange={(e) => setRegion(e.target.value)}
-                                placeholder="Tuscany"
+                                placeholder="e.g. Tuscany"
                                 className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                             />
                         </div>
@@ -342,7 +344,7 @@ export function AddWineForm() {
                             type="text"
                             value={subRegion}
                             onChange={(e) => setSubRegion(e.target.value)}
-                            placeholder="Bolgheri"
+                            placeholder="e.g. Bolgheri"
                             className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                         />
                     </div>
@@ -353,7 +355,7 @@ export function AddWineForm() {
                             type="text"
                             value={grapes}
                             onChange={(e) => setGrapes(e.target.value)}
-                            placeholder="Cabernet Sauvignon, Cabernet Franc"
+                            placeholder="e.g. Cabernet Sauvignon"
                             className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                         />
                         <p className="text-[10px] text-muted-foreground mt-1">Comma separated</p>
@@ -375,6 +377,7 @@ export function AddWineForm() {
                                 step="0.1"
                                 value={alcoholContent}
                                 onChange={(e) => setAlcoholContent(e.target.value)}
+                                placeholder="e.g. 13.5%"
                                 className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                             />
                         </div>
@@ -384,7 +387,7 @@ export function AddWineForm() {
                                 type="text"
                                 value={bottleSize}
                                 onChange={(e) => setBottleSize(e.target.value)}
-                                placeholder="750ml"
+                                placeholder="e.g. 750ml"
                                 className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                             />
                         </div>
@@ -406,7 +409,7 @@ export function AddWineForm() {
                                 type="text"
                                 value={location}
                                 onChange={(e) => setLocation(e.target.value)}
-                                placeholder="Rack A, Shelf 2"
+                                placeholder="e.g. Rack A"
                                 className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                             />
                         </div>
@@ -426,7 +429,7 @@ export function AddWineForm() {
                                 type="number"
                                 value={drinkFrom}
                                 onChange={(e) => setDrinkFrom(e.target.value)}
-                                placeholder="2028"
+                                placeholder="e.g. 2028"
                                 className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                             />
                         </div>
@@ -436,7 +439,7 @@ export function AddWineForm() {
                                 type="number"
                                 value={drinkTo}
                                 onChange={(e) => setDrinkTo(e.target.value)}
-                                placeholder="2040"
+                                placeholder="e.g. 2040"
                                 className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                             />
                         </div>
@@ -455,7 +458,7 @@ export function AddWineForm() {
                             type="text"
                             value={boughtAt}
                             onChange={(e) => setBoughtAt(e.target.value)}
-                            placeholder="Wine Merchants Inc"
+                            placeholder="e.g. Wine Merchants"
                             className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                         />
                     </div>
@@ -466,6 +469,7 @@ export function AddWineForm() {
                                 type="date"
                                 value={boughtDate}
                                 onChange={(e) => setBoughtDate(e.target.value)}
+                                placeholder="e.g. Today"
                                 className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                                 style={{ minWidth: 0, maxWidth: '100%', width: '100%', boxSizing: 'border-box' }}
                             />
@@ -477,7 +481,7 @@ export function AddWineForm() {
                                 step="0.01"
                                 value={price}
                                 onChange={(e) => setPrice(e.target.value)}
-                                placeholder="€"
+                                placeholder="e.g. 25"
                                 className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                                 style={{ minWidth: 0, maxWidth: '100%', width: '100%', boxSizing: 'border-box' }}
                             />

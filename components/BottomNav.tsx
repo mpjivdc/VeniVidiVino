@@ -24,35 +24,12 @@ export function BottomNav() {
 
                 {/* Raised FAB Center Button */}
                 <div className="absolute left-1/2 -translate-x-1/2 -top-10">
-                    <button
-                        onClick={() => setShowMenu(!showMenu)}
-                        className="h-16 w-16 rounded-full bg-primary hover:bg-primary/90 shadow-[0_12px_40px_rgba(128,0,32,0.6)] border-[4px] border-background relative z-[60] transition-transform active:scale-95 group"
+                    <Link
+                        href="/add"
+                        className="h-16 w-16 rounded-full bg-primary hover:bg-primary/90 shadow-[0_12px_40px_rgba(128,0,32,0.6)] border-[4px] border-background relative z-[60] transition-transform active:scale-95 group flex items-center justify-center"
                     >
-                        <Plus className="h-8 w-8 text-white group-hover:scale-110 transition-transform mx-auto" />
-                    </button>
-
-                    {showMenu && (
-                        <div className="absolute bottom-20 left-1/2 -translate-x-1/2 w-52 p-2 bg-card/98 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl">
-                            <div className="flex flex-col gap-1.5 p-1">
-                                <Link
-                                    href="/add?action=scan"
-                                    className="flex items-center gap-3 p-4 hover:bg-primary text-white hover:text-white rounded-2xl transition-all text-sm font-bold bg-primary/20"
-                                    onClick={() => setShowMenu(false)}
-                                >
-                                    <Camera className="h-5 w-5" />
-                                    Scan Wine Label
-                                </Link>
-                                <Link
-                                    href="/add"
-                                    className="flex items-center gap-3 p-4 hover:bg-primary/10 rounded-2xl transition-all text-sm font-medium border border-white/5"
-                                    onClick={() => setShowMenu(false)}
-                                >
-                                    <FileText className="h-5 w-5 text-primary" />
-                                    Manual Entry
-                                </Link>
-                            </div>
-                        </div>
-                    )}
+                        <Plus className="h-8 w-8 text-white group-hover:scale-110 transition-transform" />
+                    </Link>
                 </div>
 
                 <Link

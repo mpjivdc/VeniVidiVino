@@ -16,6 +16,29 @@ import { Plus, Minus } from "lucide-react"
 import { Button } from "./ui/button"
 import { updateQuantityAction } from "@/lib/actions"
 
+const getFlag = (countryName: string) => {
+    const flags: Record<string, string> = {
+        "France": "🇫🇷",
+        "Italy": "🇮🇹",
+        "Spain": "🇪🇸",
+        "USA": "🇺🇸",
+        "United States": "🇺🇸",
+        "Germany": "🇩🇪",
+        "Portugal": "🇵🇹",
+        "Argentina": "🇦🇷",
+        "Chile": "🇨🇱",
+        "Australia": "🇦🇺",
+        "New Zealand": "🇳🇿",
+        "South Africa": "🇿🇦",
+        "Austria": "🇦🇹",
+    };
+    // Basic fuzzy match or direct lookup
+    for (const [key, value] of Object.entries(flags)) {
+        if (countryName.toLowerCase().includes(key.toLowerCase())) return value;
+    }
+    return "🏳️";
+};
+
 interface WineCardProps {
     wine: WineType
     sheetTitle: "Cellar" | "Wishlist"
@@ -53,6 +76,8 @@ export function WineCard({ wine, sheetTitle }: WineCardProps) {
         }
     }
 
+    const countryFlag = wine.country ? getFlag(wine.country) : "";
+
     return (
         <Drawer open={isOpen} onOpenChange={setIsOpen}>
             <DrawerTrigger asChild>
@@ -89,7 +114,10 @@ export function WineCard({ wine, sheetTitle }: WineCardProps) {
                         <div className="flex-1 p-3 flex flex-col justify-between">
                             <div>
                                 <div className="flex justify-between items-start mb-1">
-                                    <h3 className="font-semibold text-sm line-clamp-2 leading-tight pr-4">{wine.name}</h3>
+                                    <h3 className="font-semibold text-sm line-clamp-2 leading-tight pr-4">
+                                        {countryFlag && <span className="mr-1.5">{countryFlag}</span>}
+                                        {wine.name}
+                                    </h3>
                                     {wine.rating && (
                                         <div className="flex items-center bg-primary/20 px-1.5 py-0.5 rounded text-xs text-primary font-medium shrink-0 ml-2">
                                             {wine.rating}
@@ -121,7 +149,7 @@ export function WineCard({ wine, sheetTitle }: WineCardProps) {
                                 </div>
                                 <Badge variant="secondary" className="text-[10px] px-1.5 h-6 shrink-0">{wine.vintage}</Badge>
                                 <Badge variant="outline" className="text-[10px] px-1.5 h-6 border-primary/30 text-primary shrink-0 truncate">{wine.type}</Badge>
-                                {wine.tastingNotes?.slice(0, 2).map(note => (
+                                {wine.tastingNotes?.slice(0, 2).map((note: string) => (
                                     <Badge key={note} variant="secondary" className="text-[10px] px-1.5 h-6 bg-primary/5 text-primary/70 border-none shrink-0 hidden sm:flex">
                                         {note}
                                     </Badge>
