@@ -12,9 +12,18 @@ interface CellarListProps {
 
 export function CellarList({ initialWines }: CellarListProps) {
     const [showFinished, setShowFinished] = useState(false)
+    const [wines, setWines] = useState<Wine[]>(initialWines)
 
-    const filteredWines = initialWines.filter(w => showFinished ? true : w.quantity > 0)
-    const bottleCount = initialWines.filter(w => w.quantity > 0).length
+    const handleWineUpdate = (id: string, newQuantity: number) => {
+        setWines(prevWines =>
+            prevWines.map(wine =>
+                wine.id === id ? { ...wine, quantity: newQuantity } : wine
+            )
+        )
+    }
+
+    const filteredWines = wines.filter(w => showFinished ? true : w.quantity > 0)
+    const bottleCount = wines.filter(w => w.quantity > 0).length
 
     return (
         <>
@@ -43,7 +52,12 @@ export function CellarList({ initialWines }: CellarListProps) {
             ) : (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 mb-24">
                     {filteredWines.map((wine) => (
-                        <WineCard key={wine.id} wine={wine} sheetTitle="Cellar" />
+                        <WineCard
+                            key={wine.id}
+                            wine={wine}
+                            sheetTitle="Cellar"
+                            onQuantityChange={handleWineUpdate}
+                        />
                     ))}
                 </div>
             )}

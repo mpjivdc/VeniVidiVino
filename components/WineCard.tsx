@@ -42,9 +42,10 @@ const getFlag = (countryName: string) => {
 interface WineCardProps {
     wine: WineType
     sheetTitle: "Cellar" | "Wishlist"
+    onQuantityChange?: (id: string, newQuantity: number) => void
 }
 
-export function WineCard({ wine, sheetTitle }: WineCardProps) {
+export function WineCard({ wine, sheetTitle, onQuantityChange }: WineCardProps) {
     const [isOpen, setIsOpen] = useState(false)
     const [optimisticQuantity, setOptimisticQuantity] = useState(wine.quantity)
 
@@ -61,9 +62,18 @@ export function WineCard({ wine, sheetTitle }: WineCardProps) {
         }
 
         setOptimisticQuantity(next);
+
+        // Notify parent immediately for instant filtering
+        if (onQuantityChange) {
+            onQuantityChange(wine.id, next);
+        }
+
         const result = await updateQuantityAction(wine.id, next, sheetTitle);
         if (!result.success) {
             setOptimisticQuantity(wine.quantity); // Revert on failure
+            if (onQuantityChange) {
+                onQuantityChange(wine.id, wine.quantity);
+            }
         }
     };
 

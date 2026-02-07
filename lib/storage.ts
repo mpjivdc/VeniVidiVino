@@ -60,7 +60,7 @@ export async function getWines(sheetTitle: "Cellar" | "Wishlist"): Promise<Wine[
                 producer: row.get("Producer") || "",
                 alcoholContent: parseFloat(row.get("Alcohol%")) || undefined,
                 bottleSize: row.get("Bottle Size"),
-                quantity: parseInt(row.get("Quantity")) || 1,
+                quantity: !isNaN(parseInt(row.get("Quantity"))) ? parseInt(row.get("Quantity")) : 1,
                 location: row.get("Location"),
                 drinkFrom: parseInt(row.get("Drink From")) || undefined,
                 drinkTo: parseInt(row.get("Drink To")) || undefined,
