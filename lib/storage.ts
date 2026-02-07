@@ -18,7 +18,7 @@ const KEY_TO_HEADER: Record<string, string> = {
     rating: 'Rating', price: 'Price', boughtAt: 'Bought At', boughtDate: 'Bought Date',
     tastingNotes: 'Tasting Notes', pairingSuggestions: 'Pairing',
     status: 'Status', createdAt: 'CreatedAt', updatedAt: 'UpdatedAt',
-    userId: 'UserId', notes: 'Notes', image: 'Image'
+    userId: 'UserId', personalNotes: 'Notes', image: 'Image'
 };
 
 export async function getWines(sheetTitle: "Cellar" | "Wishlist"): Promise<Wine[]> {
@@ -76,7 +76,7 @@ export async function getWines(sheetTitle: "Cellar" | "Wishlist"): Promise<Wine[
                 createdAt: row.get("CreatedAt"),
                 updatedAt: row.get("UpdatedAt"),
                 userId: row.get("UserId"),
-                notes: row.get("Notes"),
+                personalNotes: row.get("Notes"),
             }
         });
     } catch (error) {

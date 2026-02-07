@@ -97,6 +97,7 @@ export function AddWineForm() {
     const [pairingSuggestions, setPairingSuggestions] = useState("")
     const [addToCellar, setAddToCellar] = useState(true)
     const [addToWishlist, setAddToWishlist] = useState(false)
+    const [personalNotes, setPersonalNotes] = useState("")
 
     // Auto-trigger scan if requested
     React.useEffect(() => {
@@ -194,6 +195,7 @@ export function AddWineForm() {
             if (pairingSuggestions) formData.append("pairingSuggestions", pairingSuggestions)
             if (addToCellar) formData.append("addToCellar", "on")
             if (addToWishlist) formData.append("addToWishlist", "on")
+            if (personalNotes) formData.append("personalNotes", personalNotes)
 
             if (selectedImage) {
                 formData.append("image", selectedImage);
@@ -242,7 +244,7 @@ export function AddWineForm() {
     return (
         <div className="space-y-10 pb-32">
             <div className="text-center py-2">
-                <p className="text-[10px] text-primary font-black tracking-[0.2em] uppercase opacity-80">V4.1-SAVE-FIXED</p>
+                <p className="text-[10px] text-primary font-black tracking-[0.2em] uppercase opacity-80">V4.2-FINAL-POLISH</p>
             </div>
 
             {/* Scan Button at Top */}
@@ -477,7 +479,7 @@ export function AddWineForm() {
                 <div className="space-y-6">
                     <div className="flex items-center gap-3 text-primary border-b border-white/5 pb-2 ml-1">
                         <Euro className="w-4 h-4" />
-                        <h3 className="font-black text-[11px] uppercase tracking-[0.2em]">€ Purchase Details</h3>
+                        <h3 className="font-black text-[11px] uppercase tracking-[0.2em]">€ PURCHASE INFO</h3>
                     </div>
 
                     <div className="space-y-5">
@@ -590,6 +592,17 @@ export function AddWineForm() {
                             disabled={isSubmitting}
                         />
                     </div>
+
+                    <div>
+                        <Label>Personal Notes</Label>
+                        <textarea
+                            value={personalNotes}
+                            onChange={(e) => setPersonalNotes(e.target.value)}
+                            placeholder="e.g. Gift from Sarah, better if decanted for 2 hours..."
+                            className="w-full bg-card border border-white/5 rounded-xl px-4 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-muted-foreground/30 min-h-[120px] resize-none"
+                            disabled={isSubmitting}
+                        />
+                    </div>
                 </div>
 
                 {/* Destinations Section */}
@@ -647,7 +660,7 @@ export function AddWineForm() {
                         "SAVE TO COLLECTION"
                     )}
                 </button>
-            </form>
-        </div>
+            </form >
+        </div >
     )
 }

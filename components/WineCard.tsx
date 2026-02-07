@@ -12,7 +12,7 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useState } from "react"
-import { Plus, Minus } from "lucide-react"
+import { Plus, Minus, Wine } from "lucide-react"
 import { Button } from "./ui/button"
 import { updateQuantityAction } from "@/lib/actions"
 
@@ -77,19 +77,19 @@ export function WineCard({ wine, sheetTitle, onQuantityChange }: WineCardProps) 
         }
     };
 
-    // Drinking Window Logic (Definitive 2026 implementation)
+    // Simplified Status Indicator Logic
     const currentYear = 2026;
-    let windowStatus: { color: string, label: string } | null = null;
+    let windowStatus = { color: "text-muted-foreground/30", label: "No window info", iconColor: "text-muted-foreground/30" };
 
     if (wine.drinkFrom && wine.drinkTo) {
         if (currentYear < wine.drinkFrom) {
-            windowStatus = { color: "bg-blue-500", label: "Too young" }
+            windowStatus = { color: "bg-blue-500", label: "Too young", iconColor: "text-blue-500" }
         } else if (currentYear >= wine.drinkFrom && currentYear < wine.drinkTo) {
-            windowStatus = { color: "bg-green-500", label: "Ready to drink" }
+            windowStatus = { color: "bg-green-500", label: "Ready to drink", iconColor: "text-green-500" }
         } else if (currentYear === wine.drinkTo) {
-            windowStatus = { color: "bg-orange-500", label: "Drink now" }
+            windowStatus = { color: "bg-orange-500", label: "Drink now", iconColor: "text-orange-500" }
         } else if (currentYear > wine.drinkTo) {
-            windowStatus = { color: "bg-red-500", label: "Past peak" }
+            windowStatus = { color: "bg-red-500", label: "Past peak", iconColor: "text-red-500" }
         }
     }
 
@@ -109,7 +109,12 @@ export function WineCard({ wine, sheetTitle, onQuantityChange }: WineCardProps) 
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        <div className={`w-2.5 h-2.5 rounded-full ${windowStatus.color.replace('bg-', 'bg-')} shadow-sm shadow-black/50`} />
+                                        <div className="flex items-center gap-1.5 bg-card/80 backdrop-blur-sm border border-white/5 px-2 py-1 rounded-full shadow-lg">
+                                            <Wine className={`w-3 h-3 ${windowStatus.iconColor} drop-shadow-[0_0_8px_rgba(var(--primary-rgb),0.3)]`} />
+                                            <span className={`text-[8px] font-black uppercase tracking-widest ${windowStatus.iconColor}`}>
+                                                {windowStatus.label}
+                                            </span>
+                                        </div>
                                     </TooltipTrigger>
                                     <TooltipContent className="bg-popover text-foreground border-white/10">
                                         <p className="text-xs font-semibold">{windowStatus.label}</p>

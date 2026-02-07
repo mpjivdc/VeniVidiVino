@@ -37,6 +37,7 @@ export async function createWine(formData: FormData) {
         const rating = parseFloat(formData.get("rating") as string) || undefined;
         const tastingNotes = formData.getAll("tastingNotes") as string[];
         const pairingSuggestions = formData.get("pairingSuggestions") as string;
+        const personalNotes = formData.get("personalNotes") as string;
 
         // Image Handling (Base64 for Google Sheets)
         let imagePath: string | undefined = undefined;
@@ -77,7 +78,7 @@ export async function createWine(formData: FormData) {
             alcoholContent, bottleSize,
             quantity, location,
             drinkFrom, drinkTo, boughtAt, boughtDate, price,
-            rating, tastingNotes, pairingSuggestions,
+            rating, tastingNotes, pairingSuggestions, personalNotes,
             image: imagePath,
         }, destinations);
 
@@ -135,6 +136,7 @@ export async function updateWineAction(id: string, formData: FormData, sheetTitl
         const tastingNotes = formData.getAll("tastingNotes") as string[];
         if (tastingNotes.length > 0) updates.tastingNotes = tastingNotes;
         if (formData.has("pairingSuggestions")) updates.pairingSuggestions = formData.get("pairingSuggestions") as string;
+        if (formData.has("personalNotes")) updates.personalNotes = formData.get("personalNotes") as string;
 
         await updateWine(id, updates, sheetTitle);
 

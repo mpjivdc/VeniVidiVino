@@ -32,7 +32,7 @@ const tastingNoteOptions = {
 
 export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProps) {
     <div className="text-center py-2">
-        <p className="text-[10px] text-primary font-bold tracking-widest">V4.1-SAVE-FIXED</p>
+        <p className="text-[10px] text-primary font-bold tracking-widest">V4.2-FINAL-POLISH</p>
     </div>
 
     // Form state - initialized with wine data
@@ -59,6 +59,7 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
     const [rating, setRating] = useState(wine.rating || 3.5)
     const [tastingNotes, setTastingNotes] = useState<string[]>(wine.tastingNotes || [])
     const [pairingSuggestions, setPairingSuggestions] = useState(wine.pairingSuggestions || "")
+    const [personalNotes, setPersonalNotes] = useState(wine.personalNotes || "")
 
     const toggleNote = (note: string) => {
         if (tastingNotes.includes(note)) {
@@ -95,6 +96,7 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
         formData.append("rating", rating.toString())
         tastingNotes.forEach(note => formData.append('tastingNotes', note));
         if (pairingSuggestions) formData.append("pairingSuggestions", pairingSuggestions)
+        if (personalNotes) formData.append("personalNotes", personalNotes)
 
         try {
             const result = await updateWineAction(wine.id, formData, sheetTitle)
@@ -134,7 +136,7 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
         return (
             <div className="flex flex-col h-screen bg-background overflow-y-auto">
                 <div className="text-center py-2">
-                    <p className="text-[10px] text-primary font-bold tracking-widest">V4.1-SAVE-FIXED</p>
+                    <p className="text-[10px] text-primary font-bold tracking-widest">V4.2-FINAL-POLISH</p>
                 </div>
 
                 {/* Header */}
@@ -240,6 +242,19 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
                         </div>
                     )}
 
+                    {/* Personal Notes View Mode */}
+                    {wine.personalNotes && (
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-2 text-primary border-b pb-1">
+                                <Info className="w-4 h-4" />
+                                <h3 className="font-bold text-sm uppercase tracking-wider">Personal Notes</h3>
+                            </div>
+                            <div className="p-4 bg-card border rounded-xl">
+                                <p className="text-sm leading-relaxed whitespace-pre-wrap">{wine.personalNotes}</p>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Timeline & Purchase */}
                     <div className="space-y-4">
                         <div className="flex items-center gap-2 text-primary border-b pb-1">
@@ -275,7 +290,7 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
     return (
         <div className="flex flex-col h-screen bg-background overflow-y-auto">
             <div className="text-center py-2">
-                <p className="text-[10px] text-primary font-bold tracking-widest">V4.1-SAVE-FIXED</p>
+                <p className="text-[10px] text-primary font-bold tracking-widest">V4.2-FINAL-POLISH</p>
             </div>
 
             {/* Header */}
@@ -309,7 +324,8 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            placeholder="e.g. Sassicaia"
+                            className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary placeholder:text-muted-foreground/30"
                             required
                         />
                     </div>
@@ -320,7 +336,8 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
                             type="text"
                             value={producer}
                             onChange={(e) => setProducer(e.target.value)}
-                            className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            placeholder="e.g. Tenuta San Guido"
+                            className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary placeholder:text-muted-foreground/30"
                             required
                         />
                     </div>
@@ -332,7 +349,8 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
                                 type="number"
                                 value={vintage}
                                 onChange={(e) => setVintage(e.target.value)}
-                                className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                                placeholder="e.g. 2019"
+                                className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary placeholder:text-muted-foreground/30"
                                 required
                             />
                         </div>
@@ -474,7 +492,7 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
                 <div className="space-y-4">
                     <div className="flex items-center gap-2 text-primary border-b pb-1">
                         <Euro className="w-4 h-4" />
-                        <h3 className="font-bold text-sm uppercase tracking-wider">€ Purchase Info</h3>
+                        <h3 className="font-bold text-sm uppercase tracking-wider">€ PURCHASE INFO</h3>
                     </div>
                     <div>
                         <label className="block text-sm font-medium mb-2">Bought At (Shop)</label>
@@ -569,8 +587,18 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
                             type="text"
                             value={pairingSuggestions}
                             onChange={(e) => setPairingSuggestions(e.target.value)}
-                            placeholder="Grilled Lamb, Aged Cheese..."
-                            className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            placeholder="e.g. Grilled Lamb, Aged Cheese..."
+                            className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary placeholder:text-muted-foreground/30"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium mb-2">Personal Notes</label>
+                        <textarea
+                            value={personalNotes}
+                            onChange={(e) => setPersonalNotes(e.target.value)}
+                            placeholder="e.g. Gift from Sarah, better if decanted for 2 hours..."
+                            className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary placeholder:text-muted-foreground/30 min-h-[120px] resize-none"
                         />
                     </div>
                 </div>

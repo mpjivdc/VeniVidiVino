@@ -40,7 +40,7 @@ export interface Wine {
     createdAt?: string;
     updatedAt?: string;
     userId?: string;
-    notes?: string;
+    personalNotes?: string;
 }
 
 export type WishlistItem = Wine;
