@@ -4,7 +4,7 @@ import * as React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Camera, Loader2, Info, GlassWater, Calendar, Euro, Plus, X, Check, Filter, History } from "lucide-react"
-import { createWine } from "@/lib/actions"
+import { createWine, fetchRatings } from "@/lib/actions"
 import { WineType } from "@/lib/types"
 
 const wineTypes: WineType[] = ["Red", "White", "Rose", "Sparkling", "Dessert", "Fortified", "Orange", "Other"]
@@ -118,6 +118,7 @@ export function AddWineForm() {
     const [addToCellar, setAddToCellar] = useState(true)
     const [addToWishlist, setAddToWishlist] = useState(false)
     const [personalNotes, setPersonalNotes] = useState("")
+    const [expertRatings, setExpertRatings] = useState("")
 
     // Auto-trigger scan if requested
     React.useEffect(() => {
@@ -164,6 +165,14 @@ export function AddWineForm() {
             if (data.alcohol) setAlcoholContent(data.alcohol.toString())
             if (data.pairings) setPairingSuggestions(data.pairings)
             if (data.tastingNotes) setTastingNotes(data.tastingNotes)
+
+            // NEW: Fetch expert ratings
+            if (data.name && data.year) {
+                const ratings = await fetchRatings(data.name, data.year);
+                if (ratings && ratings.length > 0) {
+                    setExpertRatings(JSON.stringify(ratings));
+                }
+            }
         } catch (error) {
             console.error("Scan error", error)
         } finally {
@@ -216,6 +225,7 @@ export function AddWineForm() {
             if (addToCellar) formData.append("addToCellar", "on")
             if (addToWishlist) formData.append("addToWishlist", "on")
             if (personalNotes) formData.append("personalNotes", personalNotes)
+            if (expertRatings) formData.append("expertRatings", expertRatings)
 
             if (selectedImage) {
                 formData.append("image", selectedImage);
@@ -244,7 +254,7 @@ export function AddWineForm() {
     return (
         <div className="space-y-10 pb-32">
             <div className="text-center py-2">
-                <p className="text-[10px] text-primary font-black tracking-[0.2em] uppercase opacity-80">V4.4-FOCUS-FIXED</p>
+                <p className="text-[10px] text-primary font-black tracking-[0.2em] uppercase opacity-80">V5.1-EXPERT-SOURCES-FIXED</p>
             </div>
 
             {/* Scan Button at Top */}
@@ -599,7 +609,16 @@ export function AddWineForm() {
                             value={personalNotes}
                             onChange={(e) => setPersonalNotes(e.target.value)}
                             placeholder="e.g. Gift from Sarah, better if decanted for 2 hours..."
-                            className="w-full bg-card border border-white/5 rounded-xl px-4 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-muted-foreground/30 min-h-[120px] resize-none"
+                        />
+                    </div>
+
+                    <div>
+                        <Label>Expert Ratings (JSON)</Label>
+                        <textarea
+                            value={expertRatings}
+                            onChange={(e) => setExpertRatings(e.target.value)}
+                            placeholder='[{"source": "Parker", "score": "96"}, ...]'
+                            className="w-full bg-card border border-white/5 rounded-xl px-4 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-muted-foreground/30 min-h-[80px] resize-none"
                             disabled={isSubmitting}
                         />
                     </div>

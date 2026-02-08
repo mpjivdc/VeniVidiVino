@@ -41,6 +41,7 @@ export interface Wine {
     updatedAt?: string;
     userId?: string;
     personalNotes?: string;
+    expertRatings?: string;
 }
 
 export type WishlistItem = Wine;

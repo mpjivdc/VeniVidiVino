@@ -32,7 +32,7 @@ const tastingNoteOptions = {
 
 export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProps) {
     <div className="text-center py-2">
-        <p className="text-[10px] text-primary font-bold tracking-widest">V4.4-FOCUS-FIXED</p>
+        <p className="text-[10px] text-primary font-bold tracking-widest">V5.1-EXPERT-SOURCES-FIXED</p>
     </div>
 
     // Form state - initialized with wine data
@@ -60,6 +60,7 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
     const [tastingNotes, setTastingNotes] = useState<string[]>(wine.tastingNotes || [])
     const [pairingSuggestions, setPairingSuggestions] = useState(wine.pairingSuggestions || "")
     const [personalNotes, setPersonalNotes] = useState(wine.personalNotes || "")
+    const [expertRatings, setExpertRatings] = useState(wine.expertRatings || "")
 
     const toggleNote = (note: string) => {
         if (tastingNotes.includes(note)) {
@@ -97,6 +98,7 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
         tastingNotes.forEach(note => formData.append('tastingNotes', note));
         if (pairingSuggestions) formData.append("pairingSuggestions", pairingSuggestions)
         if (personalNotes) formData.append("personalNotes", personalNotes)
+        if (expertRatings) formData.append("expertRatings", expertRatings)
 
         try {
             const result = await updateWineAction(wine.id, formData, sheetTitle)
@@ -136,7 +138,7 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
         return (
             <div className="flex flex-col h-screen bg-background overflow-y-auto">
                 <div className="text-center py-2">
-                    <p className="text-[10px] text-primary font-bold tracking-widest">V4.4-FOCUS-FIXED</p>
+                    <p className="text-[10px] text-primary font-bold tracking-widest">V5.1-EXPERT-SOURCES-FIXED</p>
                 </div>
 
                 {/* Header */}
@@ -182,6 +184,36 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
                             </div>
                         </div>
                     </div>
+
+                    {/* Expert Ratings Badges */}
+                    {wine.expertRatings && (
+                        <div className="flex flex-wrap gap-2">
+                            {(() => {
+                                try {
+                                    const ratings = JSON.parse(wine.expertRatings);
+                                    if (!Array.isArray(ratings)) return null;
+
+                                    const sourceColors: Record<string, string> = {
+                                        'Parker': 'bg-[#B03043] text-white', // Dark Red
+                                        'Decanter': 'bg-[#003366] text-white', // Deep Blue
+                                        'Suckling': 'bg-[#D4AF37] text-black', // Gold/Brass
+                                        'Spectator': 'bg-[#2F4F4F] text-white', // Dark Slate
+                                        'Vinous': 'bg-[#4B0082] text-white', // Indigo
+                                        'Jancis': 'bg-[#556B2F] text-white', // Olive
+                                    };
+
+                                    return ratings.map((r: { source: string; score: string }, i: number) => (
+                                        <div key={i} className={`px-3 py-1.5 rounded-lg text-[10px] font-black tracking-wider flex items-center gap-2 ${sourceColors[r.source] || 'bg-muted text-muted-foreground'}`}>
+                                            <span className="opacity-70">{r.source.toUpperCase()}</span>
+                                            <span className="text-sm border-l border-white/20 pl-2">{r.score}</span>
+                                        </div>
+                                    ));
+                                } catch {
+                                    return <p className="text-[10px] text-destructive">Invalid Ratings Data</p>;
+                                }
+                            })()}
+                        </div>
+                    )}
 
                     {/* Identity & Specs */}
                     <div className="space-y-4">
@@ -290,7 +322,7 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
     return (
         <div className="flex flex-col h-screen bg-background overflow-y-auto">
             <div className="text-center py-2">
-                <p className="text-[10px] text-primary font-bold tracking-widest">V4.4-FOCUS-FIXED</p>
+                <p className="text-[10px] text-primary font-bold tracking-widest">V5.1-EXPERT-SOURCES-FIXED</p>
             </div>
 
             {/* Header */}
@@ -599,6 +631,16 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
                             onChange={(e) => setPersonalNotes(e.target.value)}
                             placeholder="e.g. Gift from Sarah, better if decanted for 2 hours..."
                             className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary placeholder:text-muted-foreground/30 min-h-[120px] resize-none"
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium mb-2">Expert Ratings (JSON)</label>
+                        <textarea
+                            value={expertRatings}
+                            onChange={(e) => setExpertRatings(e.target.value)}
+                            placeholder='[{"source": "Parker", "score": "96"}, ...]'
+                            className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary placeholder:text-muted-foreground/30 min-h-[80px] resize-none"
                         />
                     </div>
                 </div>

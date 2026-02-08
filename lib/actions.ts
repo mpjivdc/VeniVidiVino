@@ -35,6 +35,7 @@ export async function createWine(formData: FormData) {
 
         // Review
         const rating = parseFloat(formData.get("rating") as string) || undefined;
+        const expertRatings = formData.get("expertRatings") as string;
         const tastingNotes = formData.getAll("tastingNotes") as string[];
         const pairingSuggestions = formData.get("pairingSuggestions") as string;
         const personalNotes = formData.get("personalNotes") as string;
@@ -78,7 +79,7 @@ export async function createWine(formData: FormData) {
             alcoholContent, bottleSize,
             quantity, location,
             drinkFrom, drinkTo, boughtAt, boughtDate, price,
-            rating, tastingNotes, pairingSuggestions, personalNotes,
+            rating, expertRatings, tastingNotes, pairingSuggestions, personalNotes,
             image: imagePath,
         }, destinations);
 
@@ -133,6 +134,7 @@ export async function updateWineAction(id: string, formData: FormData, sheetTitl
 
         // Review
         if (formData.has("rating")) updates.rating = parseFloat(formData.get("rating") as string);
+        if (formData.has("expertRatings")) updates.expertRatings = formData.get("expertRatings") as string;
         const tastingNotes = formData.getAll("tastingNotes") as string[];
         if (tastingNotes.length > 0) updates.tastingNotes = tastingNotes;
         if (formData.has("pairingSuggestions")) updates.pairingSuggestions = formData.get("pairingSuggestions") as string;
@@ -184,5 +186,50 @@ export async function updateQuantityAction(id: string, newQuantity: number, shee
         console.error("QUANTITY UPDATE ERROR:", message);
         console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         return { success: false, error: message };
+    }
+}
+
+export async function fetchRatings(name: string, vintage: number) {
+    try {
+        console.log(`[AI Ratings] Searching for: ${name} ${vintage}`);
+
+        const { VertexAI } = await import("@google-cloud/vertexai");
+        const rawJson = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
+
+        let vertexAI;
+        try {
+            const credentials = rawJson ? JSON.parse(rawJson.trim()) : undefined;
+            vertexAI = new VertexAI({
+                project: "veni-vidi-vinoantigrav",
+                location: "europe-west1",
+                googleAuthOptions: credentials ? { credentials } : undefined
+            });
+        } catch (e) {
+            vertexAI = new VertexAI({ project: "veni-vidi-vinoantigrav", location: "europe-west1" });
+        }
+
+        const model = vertexAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const prompt = `Search for world-class expert scores for the wine: '${name} ${vintage}'.
+        Return a JSON array of available scores from these specific sources only:
+        - Parker (Robert Parker / Wine Advocate)
+        - Suckling (James Suckling)
+        - Spectator (Wine Spectator)
+        - Vinous (Antonio Galloni / Vinous)
+        - Decanter (Decanter Magazine)
+        - Jancis (Jancis Robinson)
+
+        Format example: [{"source": "Parker", "score": "96"}, {"source": "Suckling", "score": "98"}].
+        Use only the short names: Parker, Suckling, Spectator, Vinous, Decanter, Jancis.
+        If a source is not found, do not include it. 
+        Return ONLY raw valid JSON. No markdown.`;
+
+        const result = await model.generateContent(prompt);
+        const text = result.response.candidates?.[0]?.content?.parts?.[0]?.text || "[]";
+        const jsonString = text.replace(/```json/g, "").replace(/```/g, "").trim();
+
+        return JSON.parse(jsonString);
+    } catch (error) {
+        console.error("[AI Ratings] Error:", error);
+        return [];
     }
 }

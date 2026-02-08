@@ -7,7 +7,7 @@ import { revalidatePath } from "next/cache";
 const HEADER_VALUES = [
     'Name', 'Vintage', 'Country', 'Region', 'Sub-region', 'Type', 'Grapes', 'Alcohol%', 'Bottle Size',
     'Quantity', 'Location', 'Drink From', 'Drink To', 'Rating', 'Price', 'Bought At', 'Bought Date', 'Tasting Notes',
-    'Pairing', 'Status', 'CreatedAt', 'UpdatedAt', 'UserId', 'Notes', 'Image'
+    'Pairing', 'Status', 'CreatedAt', 'UpdatedAt', 'UserId', 'Notes', 'Image', 'Expert Ratings'
 ];
 
 // Map internal Wine keys to Sheet Header names
@@ -18,7 +18,7 @@ const KEY_TO_HEADER: Record<string, string> = {
     rating: 'Rating', price: 'Price', boughtAt: 'Bought At', boughtDate: 'Bought Date',
     tastingNotes: 'Tasting Notes', pairingSuggestions: 'Pairing',
     status: 'Status', createdAt: 'CreatedAt', updatedAt: 'UpdatedAt',
-    userId: 'UserId', personalNotes: 'Notes', image: 'Image'
+    userId: 'UserId', personalNotes: 'Notes', image: 'Image', expertRatings: 'Expert Ratings'
 };
 
 export async function getWines(sheetTitle: "Cellar" | "Wishlist"): Promise<Wine[]> {
@@ -77,6 +77,7 @@ export async function getWines(sheetTitle: "Cellar" | "Wishlist"): Promise<Wine[
                 updatedAt: row.get("UpdatedAt"),
                 userId: row.get("UserId"),
                 personalNotes: row.get("Notes"),
+                expertRatings: row.get("Expert Ratings"),
             }
         });
     } catch (error) {
