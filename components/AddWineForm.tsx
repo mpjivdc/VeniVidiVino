@@ -67,6 +67,26 @@ const compressImage = (file: File, maxWidth = 300, quality = 0.4): Promise<File>
     });
 };
 
+const Label = ({ children }: { children: React.ReactNode }) => (
+    <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 ml-1">
+        {children}
+    </label>
+);
+
+const Input = (props: React.InputHTMLAttributes<HTMLInputElement>) => (
+    <input
+        {...props}
+        className={`w-full bg-card border border-white/5 rounded-xl px-4 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-muted-foreground/30 ${props.className || ''}`}
+    />
+);
+
+const Select = (props: React.SelectHTMLAttributes<HTMLSelectElement>) => (
+    <select
+        {...props}
+        className={`w-full bg-card border border-white/5 rounded-xl px-4 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary transition-all ${props.className || ''}`}
+    />
+);
+
 export function AddWineForm() {
     const router = useRouter()
     const [isSubmitting, setIsSubmitting] = useState(false)
@@ -221,27 +241,7 @@ export function AddWineForm() {
         }
     }
 
-    const Label = ({ children }: { children: React.ReactNode }) => (
-        <label className="block text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-2 ml-1">
-            {children}
-        </label>
-    );
-
-    const Input = (props: React.InputHTMLAttributes<HTMLInputElement>) => (
-        <input
-            {...props}
-            className={`w-full bg-card border border-white/5 rounded-xl px-4 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-muted-foreground/30 ${props.className || ''}`}
-        />
-    );
-
-    const Select = (props: React.SelectHTMLAttributes<HTMLSelectElement>) => (
-        <select
-            {...props}
-            className={`w-full bg-card border border-white/5 rounded-xl px-4 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary transition-all ${props.className || ''}`}
-        />
-    );
-
-    export function AddWineForm() {
+    return (
         <div className="space-y-10 pb-32">
             <div className="text-center py-2">
                 <p className="text-[10px] text-primary font-black tracking-[0.2em] uppercase opacity-80">V4.4-FOCUS-FIXED</p>
@@ -663,4 +663,4 @@ export function AddWineForm() {
             </form >
         </div >
     )
-    }
+}
