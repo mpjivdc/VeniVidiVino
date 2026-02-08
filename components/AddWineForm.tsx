@@ -241,10 +241,10 @@ export function AddWineForm() {
         />
     );
 
-    return (
+    export function AddWineForm() {
         <div className="space-y-10 pb-32">
             <div className="text-center py-2">
-                <p className="text-[10px] text-primary font-black tracking-[0.2em] uppercase opacity-80">V4.3-DYNAMIC-FILTERS</p>
+                <p className="text-[10px] text-primary font-black tracking-[0.2em] uppercase opacity-80">V4.4-FOCUS-FIXED</p>
             </div>
 
             {/* Scan Button at Top */}
@@ -663,4 +663,4 @@ export function AddWineForm() {
             </form >
         </div >
     )
-}
+    }
