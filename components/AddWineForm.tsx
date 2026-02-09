@@ -254,7 +254,7 @@ export function AddWineForm() {
     return (
         <div className="space-y-10 pb-32">
             <div className="text-center py-2">
-                <p className="text-[10px] text-primary font-black tracking-[0.2em] uppercase opacity-80">V5.1-EXPERT-SOURCES-FIXED</p>
+                <p className="text-[10px] text-primary font-black tracking-[0.2em] uppercase opacity-80">V5.2-RATINGS-UI-FIX</p>
             </div>
 
             {/* Scan Button at Top */}
@@ -563,6 +563,17 @@ export function AddWineForm() {
                     </div>
 
                     <div>
+                        <Label>EXPERT RATINGS</Label>
+                        <Input
+                            type="text"
+                            value={expertRatings}
+                            onChange={(e) => setExpertRatings(e.target.value)}
+                            placeholder="After adding your wine, expert ratings will be added when available."
+                            disabled={isSubmitting}
+                        />
+                    </div>
+
+                    <div>
                         <Label>Tasting Notes</Label>
                         <div className="space-y-8 mt-4 bg-white/[0.01] p-6 rounded-3xl border border-white/5">
                             {Object.entries(tastingNoteOptions).map(([category, notes]) => (
@@ -612,16 +623,7 @@ export function AddWineForm() {
                         />
                     </div>
 
-                    <div>
-                        <Label>Expert Ratings (JSON)</Label>
-                        <textarea
-                            value={expertRatings}
-                            onChange={(e) => setExpertRatings(e.target.value)}
-                            placeholder='[{"source": "Parker", "score": "96"}, ...]'
-                            className="w-full bg-card border border-white/5 rounded-xl px-4 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-muted-foreground/30 min-h-[80px] resize-none"
-                            disabled={isSubmitting}
-                        />
-                    </div>
+
                 </div>
 
                 {/* Destinations Section */}
