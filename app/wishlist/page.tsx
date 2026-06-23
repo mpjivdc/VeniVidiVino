@@ -21,7 +21,7 @@ export default async function WishlistPage() {
                     <p className="text-sm">Add wines you want to buy later.</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                     {wishlist.map((item) => (
                         <WineCard key={item.id} wine={item} sheetTitle="Wishlist" />
                     ))}

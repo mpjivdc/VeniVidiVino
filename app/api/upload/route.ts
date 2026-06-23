@@ -1,35 +1,44 @@
 import { NextRequest, NextResponse } from "next/server";
-import { VertexAI, InlineDataPart } from "@google-cloud/vertexai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
 
-const rawJson = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
+const prompt = `Analyze this wine label image and extract the following details in JSON format:
+- name: The name of the wine.
+- producer: The producer/winery name.
+- year: The vintage year as a number. If not found, use current year.
+- type: One of "Red", "White", "Rose", "Sparkling", "Dessert", "Fortified", "Orange", "Other". Infer from color or grape if possible. Default to "Red".
+- region: The region (e.g., Napa Valley, Bordeaux).
+- subRegion: The specific sub-region or AOC if visible (e.g., Bolgheri, Margaux).
+- country: The country of origin.
+- grapes: An array of grape varieties mentioned on the label.
+- alcohol: The alcohol percentage as a number (e.g., 14.5).
+- pairings: Suggest exactly 3 perfect food pairings based on this wine's style as a single string (e.g., "Grilled ribeye, aged cheddar, dark chocolate").
+- tastingNotes: An array of exactly 4-6 relevant tasting notes from this PROFESSIONAL TASTING GRID. Choose terms that match the wine's style and type:
 
-const getVertexAI = () => {
-    try {
-        const cleanedJson = rawJson?.trim();
-        const credentials = cleanedJson ? JSON.parse(cleanedJson) : undefined;
-        const instance = new VertexAI({
-            project: "veni-vidi-vinoantigrav",
-            location: "europe-west1",
-            googleAuthOptions: credentials ? { credentials } : undefined
-        });
-        return instance;
-    } catch (e: unknown) {
-        const message = e instanceof Error ? e.message : String(e);
-        console.error("[Auth] JSON Parse Error:", message);
-        return new VertexAI({
-            project: "veni-vidi-vinoantigrav",
-            location: "europe-west1",
-        });
-    }
-};
+  FRUIT - Citrus: Lemon, Lime, Grapefruit, Orange peel
+  FRUIT - Stone: Peach, Apricot, Nectarine, Cherry
+  FRUIT - Red: Strawberry, Raspberry, Redcurrant, Cranberry
+  FRUIT - Black: Blackberry, Black cherry, Plum, Blackcurrant
+  FRUIT - Tropical: Pineapple, Mango, Melon, Lychee, Banana
+  FRUIT - Dried: Fig, Raisin, Prune, Jammy
+  FLORAL: Rose, Violet, Honeysuckle, Orange blossom, Jasmine
+  HERBAL/VEGETAL: Grass, Bell pepper, Asparagus, Mint, Eucalyptus, Tobacco, Tomato leaf, Tea
+  SPICE: Black pepper, Cinnamon, Clove, Vanilla, Licorice, Ginger, Anise
+  EARTHY/MINERAL: Mushroom, Forest floor, Wet stones, Flint, Chalk, Dust, Petroleum
+  OAK/AGE: Cedar, Toast, Smoke, Caramel, Butter, Nutty, Chocolate, Coffee, Leather
+  MOUTHFEEL: High Acidity, Low Acidity, Soft Tannins, Firm Tannins, Light Body, Full Body
 
-const vertexAI = getVertexAI();
+Return ONLY raw valid JSON. Do not include markdown formatting or backticks.`;
 
 export async function POST(req: NextRequest) {
     try {
+        const apiKey = process.env.GOOGLE_AI_API_KEY;
+        if (!apiKey) {
+            return NextResponse.json({ _error: "GOOGLE_AI_API_KEY not configured" }, { status: 500 });
+        }
+
         const formData = await req.formData();
         const file = formData.get("image") as File;
 
@@ -39,79 +48,28 @@ export async function POST(req: NextRequest) {
 
         const buffer = Buffer.from(await file.arrayBuffer());
         const base64Image = buffer.toString("base64");
-        console.log("[AI Scan] Image parsed successfully.");
 
-        const modelsToTry = ["gemini-3-flash", "gemini-2.0-flash"];
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-        for (const modelName of modelsToTry) {
-            try {
-                console.log(`[AI Scan] Attempting with model: ${modelName}...`);
-                const generativeModel = vertexAI.getGenerativeModel({ model: modelName });
+        const result = await model.generateContent([
+            {
+                inlineData: {
+                    data: base64Image,
+                    mimeType: file.type || "image/jpeg",
+                }
+            },
+            { text: prompt }
+        ]);
 
-                const prompt = `Analyze this wine label image and extract the following details in JSON format:
-                - name: The name of the wine.
-                - producer: The producer/winery name.
-                - year: The vintage year (number). If not found, use current year.
-                - type: One of "Red", "White", "Rose", "Sparkling", "Dessert", "Fortified", "Orange", "Other". Infer from color or grape if possible. Default to "Red".
-                - region: The region (e.g., Napa Valley, Bordeaux).
-                - subRegion: The specific sub-region or AOC if visible (e.g., Bolgheri, Margaux).
-                - country: The country of origin.
-                - grapes: An array of grape varieties mentioned on the label.
-                - alcohol: The alcohol percentage as a number (e.g., 14.5).
-                - pairings: Suggest exactly 3 perfect food pairings based on this wine's style as a single string (e.g., "Grilled ribeye, aged cheddar, dark chocolate").
-                - tastingNotes: An array of exactly 4-6 relevant tasting notes from this PROFESSIONAL TASTING GRID. Choose terms that match the wine's style and type:
-                  
-                  FRUIT - Citrus: Lemon, Lime, Grapefruit, Orange peel
-                  FRUIT - Stone: Peach, Apricot, Nectarine, Cherry
-                  FRUIT - Red: Strawberry, Raspberry, Redcurrant, Cranberry
-                  FRUIT - Black: Blackberry, Black cherry, Plum, Blackcurrant
-                  FRUIT - Tropical: Pineapple, Mango, Melon, Lychee, Banana
-                  FRUIT - Dried: Fig, Raisin, Prune, Jammy
-                  FLORAL: Rose, Violet, Honeysuckle, Orange blossom, Jasmine
-                  HERBAL/VEGETAL: Grass, Bell pepper, Asparagus, Mint, Eucalyptus, Tobacco, Tomato leaf, Tea
-                  SPICE: Black pepper, Cinnamon, Clove, Vanilla, Licorice, Ginger, Anise
-                  EARTHY/MINERAL: Mushroom, Forest floor, Wet stones, Flint, Chalk, Dust, Petroleum
-                  OAK/AGE: Cedar, Toast, Smoke, Caramel, Butter, Nutty, Chocolate, Coffee, Leather
-                  MOUTHFEEL: High Acidity, Low Acidity, Soft Tannins, Firm Tannins, Light Body, Full Body
-                
-                Return ONLY raw valid JSON. Do not include markdown formatting or backticks.`;
+        const text = result.response.text();
+        const jsonString = text.replace(/```json/g, "").replace(/```/g, "").trim();
+        const data = JSON.parse(jsonString);
 
-                const imagePart: InlineDataPart = {
-                    inlineData: {
-                        data: base64Image,
-                        mimeType: file.type || "image/jpeg",
-                    },
-                };
-
-                const result = await generativeModel.generateContent({
-                    contents: [{ role: 'user', parts: [{ text: prompt }, imagePart] }],
-                });
-
-                const response = await result.response;
-                const text = response.candidates?.[0]?.content?.parts?.[0]?.text || "";
-                console.log(`[AI Scan] Raw Response (${modelName}): ${text}`);
-
-                // Clean up potential markdown code blocks or whitespace
-                const jsonString = text.replace(/```json/g, "").replace(/```/g, "").replace(/^`|`$/g, "").trim();
-
-                const data = JSON.parse(jsonString);
-                console.log(`[AI Raw Output] ${JSON.stringify(data)}`);
-                console.log(`[AI Scan] Parsed Success with ${modelName}: ${data.name}`);
-                return NextResponse.json({ ...data, _model: modelName });
-            } catch (e: unknown) {
-                const message = e instanceof Error ? e.message : String(e);
-                console.error(`[AI Scan] Model ${modelName} failed:`, message);
-                continue;
-            }
-        }
-
-        console.warn("[AI Scan] All models failed or were blocked. Bypassing AI failure for manual user entry.");
-        return NextResponse.json({ _error: "Bypassed" });
-
+        return NextResponse.json({ ...data, _model: "gemini-1.5-flash" });
     } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
-        console.error("[AI Scan] FATAL ERROR:", message);
-        // Even in fatal error, return empty object to allow manual entry
+        console.error("[AI Scan] Error:", message);
         return NextResponse.json({ _error: message });
     }
 }

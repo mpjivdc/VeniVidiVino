@@ -218,7 +218,7 @@ export function CellarList({ initialWines }: CellarListProps) {
                     <p className="text-sm text-muted-foreground mt-1 max-w-[200px]">Try adjusting your filters or search criteria.</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-24">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 mb-24">
                     {filteredWines.map((wine) => (
                         <WineCard
                             key={wine.id}
