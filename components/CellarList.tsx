@@ -70,7 +70,7 @@ export function CellarList({ initialWines }: CellarListProps) {
         return true;
     })
 
-    const bottleCount = wines.filter(w => w.quantity > 0).length
+    const bottleCount = wines.reduce((sum, w) => sum + Math.max(0, w.quantity), 0)
     const wineTypes = ["All", "Red", "White", "Rose", "Sparkling", "Dessert", "Fortified", "Orange", "Other"]
 
     return (
@@ -90,11 +90,6 @@ export function CellarList({ initialWines }: CellarListProps) {
                     >
                         <Filter className="h-5 w-5" />
                     </Button>
-                </div>
-
-                {/* version tag */}
-                <div className="text-center py-2 -mt-2">
-                    <p className="text-[9px] text-primary/40 font-black tracking-[0.2em] uppercase">V4.4-FOCUS-FIXED</p>
                 </div>
 
                 {/* Filter Menu Drawer */}
