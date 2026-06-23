@@ -119,6 +119,7 @@ export function AddWineForm() {
     const [addToWishlist, setAddToWishlist] = useState(false)
     const [personalNotes, setPersonalNotes] = useState("")
     const [expertRatings, setExpertRatings] = useState("")
+    const [saveError, setSaveError] = useState<string | null>(null)
 
     // Auto-trigger scan if requested
     React.useEffect(() => {
@@ -241,11 +242,12 @@ export function AddWineForm() {
         };
 
         try {
+            setSaveError(null)
             await Promise.race([saveProcess(), timeoutPromise]);
             router.push("/cellar");
         } catch (error: unknown) {
             const message = error instanceof Error ? error.message : String(error);
-            console.error("Save failed", message)
+            setSaveError(message === "SAVE_TIMEOUT" ? "Save timed out — please try again." : message)
         } finally {
             setIsSubmitting(false)
         }
@@ -253,10 +255,6 @@ export function AddWineForm() {
 
     return (
         <div className="space-y-10 pb-32">
-            <div className="text-center py-2">
-                <p className="text-[10px] text-primary font-black tracking-[0.2em] uppercase opacity-80">V5.2-RATINGS-UI-FIX</p>
-            </div>
-
             {/* Scan Button at Top */}
             <div className="relative group">
                 <div className="absolute -inset-1 bg-gradient-to-r from-primary to-primary/50 rounded-[2rem] blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
@@ -293,6 +291,12 @@ export function AddWineForm() {
                     </p>
                 </div>
             </div>
+
+            {saveError && (
+                <div className="p-4 bg-destructive/10 border border-destructive/30 rounded-xl text-sm text-destructive">
+                    {saveError}
+                </div>
+            )}
 
             <form onSubmit={onSubmit} className="space-y-12">
                 {/* Identity Section */}
@@ -620,6 +624,8 @@ export function AddWineForm() {
                             value={personalNotes}
                             onChange={(e) => setPersonalNotes(e.target.value)}
                             placeholder="e.g. Gift from Sarah, better if decanted for 2 hours..."
+                            className="w-full bg-card border border-white/5 rounded-xl px-4 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder:text-muted-foreground/30 min-h-[100px] resize-none"
+                            disabled={isSubmitting}
                         />
                     </div>
 

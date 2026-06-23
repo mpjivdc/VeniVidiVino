@@ -4,8 +4,8 @@ import { useState } from "react"
 import { Wine, WineType } from "@/lib/types"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { updateWineAction, deleteWineAction } from "@/lib/actions"
-import { Loader2, Edit2, Trash2, Check, X, Calendar, Euro, GlassWater, Info, Plus } from "lucide-react"
+import { updateWineAction, deleteWineAction, moveToCellarAction } from "@/lib/actions"
+import { Loader2, Edit2, Trash2, Check, X, Calendar, Euro, GlassWater, Info, Plus, ArrowDownToLine } from "lucide-react"
 
 interface WineDetailViewProps {
     wine: Wine
@@ -30,15 +30,23 @@ const tastingNoteOptions = {
     "Mouthfeel": ["High Acidity", "Low Acidity", "Soft Tannins", "Firm Tannins", "Light Body", "Full Body"],
 };
 
-export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProps) {
-    <div className="text-center py-2">
-        <p className="text-[10px] text-primary font-bold tracking-widest">V5.1-EXPERT-SOURCES-FIXED</p>
-    </div>
+function StarRating({ rating }: { rating?: number }) {
+    if (!rating) return null;
+    const filled = Math.round(rating);
+    return (
+        <span className="text-amber-500 text-xs tracking-wider">
+            {"★".repeat(filled)}{"☆".repeat(5 - filled)}
+        </span>
+    );
+}
 
-    // Form state - initialized with wine data
+export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProps) {
     const [isEditing, setIsEditing] = useState(false)
     const [isSaving, setIsSaving] = useState(false)
     const [isDeleting, setIsDeleting] = useState(false)
+    const [isMoving, setIsMoving] = useState(false)
+    const [saveError, setSaveError] = useState<string | null>(null)
+
     const [name, setName] = useState(wine.name)
     const [producer, setProducer] = useState(wine.producer)
     const [vintage, setVintage] = useState(wine.vintage.toString())
@@ -63,15 +71,14 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
     const [expertRatings, setExpertRatings] = useState(wine.expertRatings || "")
 
     const toggleNote = (note: string) => {
-        if (tastingNotes.includes(note)) {
-            setTastingNotes(tastingNotes.filter(n => n !== note))
-        } else {
-            setTastingNotes([...tastingNotes, note])
-        }
+        setTastingNotes(prev =>
+            prev.includes(note) ? prev.filter(n => n !== note) : [...prev, note]
+        )
     }
 
     const handleSave = async () => {
         setIsSaving(true)
+        setSaveError(null)
         const formData = new FormData()
 
         formData.append("name", name)
@@ -82,8 +89,7 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
         if (region) formData.append("region", region)
         if (subRegion) formData.append("subRegion", subRegion)
         if (grapes) {
-            const grapeList = grapes.split(',').map(g => g.trim()).filter(g => g);
-            grapeList.forEach(g => formData.append('grapes', g));
+            grapes.split(',').map(g => g.trim()).filter(g => g).forEach(g => formData.append('grapes', g));
         }
         if (alcoholContent) formData.append("alcoholContent", alcoholContent)
         if (bottleSize) formData.append("bottleSize", bottleSize)
@@ -105,11 +111,11 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
             if (result?.success) {
                 setIsEditing(false)
             } else {
-                console.error(`Update failed: ${result?.error || "Unknown error"}`)
+                setSaveError(result?.error || "Save failed. Please try again.")
             }
         } catch (error: unknown) {
             const message = error instanceof Error ? error.message : String(error);
-            console.error("Save error", message)
+            setSaveError(message)
         } finally {
             setIsSaving(false)
         }
@@ -123,24 +129,36 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
             if (result?.success) {
                 onClose()
             } else {
-                console.error(`Delete failed: ${result?.error || "Unknown error"}`)
+                setSaveError(result?.error || "Delete failed. Please try again.")
                 setIsDeleting(false)
             }
         } catch (error: unknown) {
             const message = error instanceof Error ? error.message : String(error);
-            console.error("Delete error", message)
+            setSaveError(message)
             setIsDeleting(false)
         }
     }
 
+    const handleMoveToCellar = async () => {
+        setIsMoving(true)
+        try {
+            const result = await moveToCellarAction(wine)
+            if (result?.success) {
+                onClose()
+            } else {
+                setSaveError(result?.error || "Move failed. Please try again.")
+                setIsMoving(false)
+            }
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : String(error);
+            setSaveError(message)
+            setIsMoving(false)
+        }
+    }
+
     if (!isEditing) {
-        // View Mode
         return (
             <div className="flex flex-col h-screen bg-background overflow-y-auto">
-                <div className="text-center py-2">
-                    <p className="text-[10px] text-primary font-bold tracking-widest">V5.1-EXPERT-SOURCES-FIXED</p>
-                </div>
-
                 {/* Header */}
                 <div className="p-6 border-b flex justify-between items-start">
                     <div className="flex-1">
@@ -152,7 +170,19 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
                         </div>
                     </div>
                     <div className="flex gap-2">
-                        <Button variant="outline" size="icon" onClick={() => setIsEditing(true)}>
+                        {sheetTitle === "Wishlist" && (
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                className="text-primary hover:bg-primary/10"
+                                onClick={handleMoveToCellar}
+                                disabled={isMoving}
+                                title="Move to Cellar"
+                            >
+                                {isMoving ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowDownToLine className="w-4 h-4" />}
+                            </Button>
+                        )}
+                        <Button variant="outline" size="icon" onClick={() => { setSaveError(null); setIsEditing(true); }}>
                             <Edit2 className="w-4 h-4" />
                         </Button>
                         <Button variant="outline" size="icon" className="text-destructive hover:bg-destructive/10" onClick={handleDelete} disabled={isDeleting}>
@@ -161,16 +191,20 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
                     </div>
                 </div>
 
+                {saveError && (
+                    <div className="mx-6 mt-4 p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-sm text-destructive">
+                        {saveError}
+                    </div>
+                )}
+
                 {/* Content */}
                 <div className="p-6 space-y-8 pb-40">
-                    {/* Image Section */}
                     {wine.image && (
                         <div className="relative aspect-video w-full rounded-xl overflow-hidden border shadow-inner bg-muted">
                             <img src={wine.image} alt={wine.name} className="object-cover w-full h-full" />
                         </div>
                     )}
 
-                    {/* Main Stats */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="bg-card border rounded-xl p-4 space-y-1">
                             <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">Quantity</p>
@@ -180,38 +214,41 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
                             <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">Rating</p>
                             <div className="flex items-center gap-2">
                                 <p className="text-xl font-bold">{wine.rating || "N/A"}</p>
-                                <span className="text-amber-500 text-xs">★ ★ ★ ★ ★</span>
+                                <StarRating rating={wine.rating} />
                             </div>
                         </div>
                     </div>
 
-                    {/* Expert Ratings Badges */}
+                    {/* Expert Ratings */}
                     {wine.expertRatings && (
-                        <div className="flex flex-wrap gap-2">
-                            {(() => {
-                                try {
-                                    const ratings = JSON.parse(wine.expertRatings);
-                                    if (!Array.isArray(ratings)) return null;
+                        <div className="space-y-2">
+                            <div className="flex flex-wrap gap-2">
+                                {(() => {
+                                    try {
+                                        const ratings = JSON.parse(wine.expertRatings);
+                                        if (!Array.isArray(ratings) || ratings.length === 0) return null;
 
-                                    const sourceColors: Record<string, string> = {
-                                        'Parker': 'bg-[#B03043] text-white', // Dark Red
-                                        'Decanter': 'bg-[#003366] text-white', // Deep Blue
-                                        'Suckling': 'bg-[#D4AF37] text-black', // Gold/Brass
-                                        'Spectator': 'bg-[#2F4F4F] text-white', // Dark Slate
-                                        'Vinous': 'bg-[#4B0082] text-white', // Indigo
-                                        'Jancis': 'bg-[#556B2F] text-white', // Olive
-                                    };
+                                        const sourceColors: Record<string, string> = {
+                                            'Parker': 'bg-[#B03043] text-white',
+                                            'Decanter': 'bg-[#003366] text-white',
+                                            'Suckling': 'bg-[#D4AF37] text-black',
+                                            'Spectator': 'bg-[#2F4F4F] text-white',
+                                            'Vinous': 'bg-[#4B0082] text-white',
+                                            'Jancis': 'bg-[#556B2F] text-white',
+                                        };
 
-                                    return ratings.map((r: { source: string; score: string }, i: number) => (
-                                        <div key={i} className={`px-3 py-1.5 rounded-lg text-[10px] font-black tracking-wider flex items-center gap-2 ${sourceColors[r.source] || 'bg-muted text-muted-foreground'}`}>
-                                            <span className="opacity-70">{r.source.toUpperCase()}</span>
-                                            <span className="text-sm border-l border-white/20 pl-2">{r.score}</span>
-                                        </div>
-                                    ));
-                                } catch {
-                                    return <p className="text-[10px] text-destructive">Invalid Ratings Data</p>;
-                                }
-                            })()}
+                                        return ratings.map((r: { source: string; score: string }, i: number) => (
+                                            <div key={i} className={`px-3 py-1.5 rounded-lg text-[10px] font-black tracking-wider flex items-center gap-2 ${sourceColors[r.source] || 'bg-muted text-muted-foreground'}`}>
+                                                <span className="opacity-70">{r.source.toUpperCase()}</span>
+                                                <span className="text-sm border-l border-white/20 pl-2">{r.score}</span>
+                                            </div>
+                                        ));
+                                    } catch {
+                                        return <p className="text-[10px] text-destructive">Invalid ratings data</p>;
+                                    }
+                                })()}
+                            </div>
+                            <p className="text-[9px] text-muted-foreground/40 uppercase tracking-widest">AI-estimated — verify with official sources</p>
                         </div>
                     )}
 
@@ -261,11 +298,10 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
                         </div>
                     </div>
 
-                    {/* Pairing Suggestions */}
                     {wine.pairingSuggestions && (
                         <div className="space-y-4">
                             <div className="flex items-center gap-2 text-primary border-b pb-1">
-                                <GlassWater className="w-4 h-4" />
+                                <Info className="w-4 h-4" />
                                 <h3 className="font-bold text-sm uppercase tracking-wider">Food Pairings</h3>
                             </div>
                             <div className="p-4 bg-primary/5 rounded-xl border border-primary/10">
@@ -274,7 +310,6 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
                         </div>
                     )}
 
-                    {/* Personal Notes View Mode */}
                     {wine.personalNotes && (
                         <div className="space-y-4">
                             <div className="flex items-center gap-2 text-primary border-b pb-1">
@@ -287,7 +322,6 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
                         </div>
                     )}
 
-                    {/* Timeline & Purchase */}
                     <div className="space-y-4">
                         <div className="flex items-center gap-2 text-primary border-b pb-1">
                             <Calendar className="w-4 h-4" />
@@ -318,13 +352,9 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
         )
     }
 
-    // Edit Mode - Full Form
+    // Edit Mode
     return (
         <div className="flex flex-col h-screen bg-background overflow-y-auto">
-            <div className="text-center py-2">
-                <p className="text-[10px] text-primary font-bold tracking-widest">V5.1-EXPERT-SOURCES-FIXED</p>
-            </div>
-
             {/* Header */}
             <div className="p-6 border-b flex justify-between items-start">
                 <div className="flex-1">
@@ -332,7 +362,7 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
                     <p className="text-sm text-muted-foreground">Update wine details</p>
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="outline" size="icon" onClick={() => setIsEditing(false)}>
+                    <Button variant="outline" size="icon" onClick={() => { setSaveError(null); setIsEditing(false); }}>
                         <X className="w-4 h-4" />
                     </Button>
                     <Button variant="default" size="icon" onClick={handleSave} disabled={isSaving}>
@@ -340,6 +370,12 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
                     </Button>
                 </div>
             </div>
+
+            {saveError && (
+                <div className="mx-6 mt-4 p-3 bg-destructive/10 border border-destructive/30 rounded-lg text-sm text-destructive">
+                    {saveError}
+                </div>
+            )}
 
             {/* Edit Form */}
             <div className="p-6 space-y-8 pb-40">
@@ -358,7 +394,6 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
                             onChange={(e) => setName(e.target.value)}
                             placeholder="e.g. Sassicaia"
                             className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary placeholder:text-muted-foreground/30"
-                            required
                         />
                     </div>
 
@@ -370,7 +405,6 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
                             onChange={(e) => setProducer(e.target.value)}
                             placeholder="e.g. Tenuta San Guido"
                             className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary placeholder:text-muted-foreground/30"
-                            required
                         />
                     </div>
 
@@ -383,7 +417,6 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
                                 onChange={(e) => setVintage(e.target.value)}
                                 placeholder="e.g. 2019"
                                 className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary placeholder:text-muted-foreground/30"
-                                required
                             />
                         </div>
                         <div>
@@ -430,14 +463,13 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-2">Grapes</label>
+                        <label className="block text-sm font-medium mb-2">Grapes <span className="text-muted-foreground font-normal">(comma separated)</span></label>
                         <input
                             type="text"
                             value={grapes}
                             onChange={(e) => setGrapes(e.target.value)}
                             className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                         />
-                        <p className="text-[10px] text-muted-foreground mt-1">Comma separated</p>
                     </div>
                 </div>
 
@@ -524,7 +556,7 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
                 <div className="space-y-4">
                     <div className="flex items-center gap-2 text-primary border-b pb-1">
                         <Euro className="w-4 h-4" />
-                        <h3 className="font-bold text-sm uppercase tracking-wider">€ PURCHASE INFO</h3>
+                        <h3 className="font-bold text-sm uppercase tracking-wider">€ Purchase Info</h3>
                     </div>
                     <div>
                         <label className="block text-sm font-medium mb-2">Bought At (Shop)</label>
@@ -535,18 +567,17 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
                             className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                         />
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', width: '100%' }}>
-                        <div className="flex flex-col" style={{ minWidth: 0, maxWidth: '100%' }}>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
                             <label className="block text-sm font-medium mb-2">Date</label>
                             <input
                                 type="date"
                                 value={boughtDate}
                                 onChange={(e) => setBoughtDate(e.target.value)}
                                 className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                                style={{ minWidth: 0, maxWidth: '100%', width: '100%', boxSizing: 'border-box' }}
                             />
                         </div>
-                        <div className="flex flex-col" style={{ minWidth: 0, maxWidth: '100%' }}>
+                        <div>
                             <label className="block text-sm font-medium mb-2">Price paid</label>
                             <input
                                 type="number"
@@ -555,7 +586,6 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
                                 onChange={(e) => setPrice(e.target.value)}
                                 placeholder="€"
                                 className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                                style={{ minWidth: 0, maxWidth: '100%', width: '100%', boxSizing: 'border-box' }}
                             />
                         </div>
                     </div>
@@ -635,12 +665,13 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium mb-2">Expert Ratings (JSON)</label>
+                        <label className="block text-sm font-medium mb-1">Expert Ratings</label>
+                        <p className="text-[10px] text-muted-foreground/60 mb-2 uppercase tracking-widest">AI-estimated · verify with official sources</p>
                         <textarea
                             value={expertRatings}
                             onChange={(e) => setExpertRatings(e.target.value)}
                             placeholder='[{"source": "Parker", "score": "96"}, ...]'
-                            className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary placeholder:text-muted-foreground/30 min-h-[80px] resize-none"
+                            className="w-full bg-card border border-white/10 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary placeholder:text-muted-foreground/30 min-h-[80px] resize-none font-mono text-xs"
                         />
                     </div>
                 </div>
@@ -648,7 +679,7 @@ export function WineDetailView({ wine, sheetTitle, onClose }: WineDetailViewProp
                 <button
                     type="button"
                     onClick={handleSave}
-                    className="w-full py-8 text-xl font-bold rounded-2xl shadow-[0_8px_30px_rgb(128,0,32,0.3)] border-b-8 border-primary-foreground/20 active:border-b-0 active:translate-y-1 transition-all bg-primary hover:bg-primary/90 text-white"
+                    className="w-full py-8 text-xl font-bold rounded-2xl shadow-[0_8px_30px_rgb(128,0,32,0.3)] border-b-8 border-primary-foreground/20 active:border-b-0 active:translate-y-1 transition-all bg-primary hover:bg-primary/90 text-white disabled:opacity-50"
                     disabled={isSaving}
                 >
                     {isSaving ? (

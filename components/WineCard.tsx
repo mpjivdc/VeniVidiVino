@@ -78,7 +78,7 @@ export function WineCard({ wine, sheetTitle, onQuantityChange }: WineCardProps) 
     };
 
     // Simplified Status Indicator Logic
-    const currentYear = 2026;
+    const currentYear = new Date().getFullYear();
     let windowStatus = { color: "text-muted-foreground/30", label: "No window info", iconColor: "text-muted-foreground/30" };
 
     if (wine.drinkFrom && wine.drinkTo) {

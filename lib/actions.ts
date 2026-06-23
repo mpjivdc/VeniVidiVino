@@ -6,9 +6,6 @@ import { Wine, WineType } from "./types";
 
 export async function createWine(formData: FormData) {
     try {
-        console.log("[STRICT DEBUG] ACTION STARTED: createWine");
-
-        // Identity
         const name = formData.get("name") as string;
         const producer = formData.get("producer") as string;
         const vintage = parseInt(formData.get("vintage") as string) || new Date().getFullYear();
@@ -18,61 +15,44 @@ export async function createWine(formData: FormData) {
         const subRegion = formData.get("subRegion") as string;
         const grapes = formData.getAll("grapes") as string[];
 
-        // Specs
         const alcoholContent = parseFloat(formData.get("alcoholContent") as string) || undefined;
         const bottleSize = formData.get("bottleSize") as string;
 
-        // Inventory
         const quantity = parseInt(formData.get("quantity") as string) || 1;
         const location = formData.get("location") as string;
 
-        // Timeline
         const drinkFrom = parseInt(formData.get("drinkFrom") as string) || undefined;
         const drinkTo = parseInt(formData.get("drinkTo") as string) || undefined;
         const boughtAt = formData.get("boughtAt") as string;
         const boughtDate = formData.get("boughtDate") as string;
         const price = parseFloat(formData.get("price") as string) || undefined;
 
-        // Review
         const rating = parseFloat(formData.get("rating") as string) || undefined;
         const expertRatings = formData.get("expertRatings") as string;
         const tastingNotes = formData.getAll("tastingNotes") as string[];
         const pairingSuggestions = formData.get("pairingSuggestions") as string;
         const personalNotes = formData.get("personalNotes") as string;
 
-        // Image Handling (Base64 for Google Sheets)
         let imagePath: string | undefined = undefined;
         const imageFile = formData.get("image") as File;
         if (imageFile && imageFile.size > 0 && imageFile.name !== "undefined") {
             try {
                 const buffer = Buffer.from(await imageFile.arrayBuffer());
-                // We must keep this small to fit in a Google Sheets cell (50k limit)
-                // In a real app, use Vercel Blob or S3.
-                imagePath = `data:${imageFile.type};base64,${buffer.toString("base64")}`;
-                if (imagePath.length > 45000) {
-                    console.log("[STRICT DEBUG] Image too large for Sheets cell, trimming...");
-                    imagePath = undefined; // Drop if too big to avoid API error
+                const candidate = `data:${imageFile.type};base64,${buffer.toString("base64")}`;
+                if (candidate.length <= 45000) {
+                    imagePath = candidate;
                 }
             } catch (e) {
-                console.error("[STRICT DEBUG] Image conversion failed", e);
+                console.error("Image conversion failed", e);
             }
         }
 
-        // Destinations
         const addToCellar = formData.get("addToCellar") === "on";
         const addToWishlist = formData.get("addToWishlist") === "on";
         const destinations: ("Cellar" | "Wishlist")[] = [];
         if (addToCellar) destinations.push("Cellar");
         if (addToWishlist) destinations.push("Wishlist");
-
         if (destinations.length === 0) destinations.push("Cellar");
-
-        if (imagePath) {
-            console.log(`[Storage] Image detected, mapping to Column Y. Length: ${imagePath.length} characters`);
-        } else {
-            console.log(`[Storage] No image detected, sending empty string to Column Y.`);
-        }
-        console.log(`[STRICT DEBUG] SAVING: ${name} | ${producer} | ${region} | Destinations: ${destinations.join(", ")}`);
 
         await addWine({
             name, producer, vintage, type, country, region, subRegion, grapes,
@@ -90,10 +70,7 @@ export async function createWine(formData: FormData) {
         return { success: true };
     } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
-        console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        console.error("FATAL ACTION ERROR: createWine CRASHED");
-        console.error(`ERROR MESSAGE: ${message}`);
-        console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        console.error("createWine failed:", message);
         return { success: false, error: message };
     }
 }
@@ -102,7 +79,6 @@ export async function updateWineAction(id: string, formData: FormData, sheetTitl
     try {
         const updates: Partial<Wine> = {};
 
-        // Identity
         if (formData.has("name")) updates.name = formData.get("name") as string;
         if (formData.has("producer")) updates.producer = formData.get("producer") as string;
         if (formData.has("vintage")) updates.vintage = parseInt(formData.get("vintage") as string);
@@ -117,22 +93,18 @@ export async function updateWineAction(id: string, formData: FormData, sheetTitl
                 : grapesRaw;
         }
 
-        // Specs
         if (formData.has("alcoholContent")) updates.alcoholContent = parseFloat(formData.get("alcoholContent") as string);
         if (formData.has("bottleSize")) updates.bottleSize = formData.get("bottleSize") as string;
 
-        // Inventory
         if (formData.has("quantity")) updates.quantity = parseInt(formData.get("quantity") as string);
         if (formData.has("location")) updates.location = formData.get("location") as string;
 
-        // Timeline
         if (formData.has("drinkFrom")) updates.drinkFrom = parseInt(formData.get("drinkFrom") as string);
         if (formData.has("drinkTo")) updates.drinkTo = parseInt(formData.get("drinkTo") as string);
         if (formData.has("boughtAt")) updates.boughtAt = formData.get("boughtAt") as string;
         if (formData.has("boughtDate")) updates.boughtDate = formData.get("boughtDate") as string;
         if (formData.has("price")) updates.price = parseFloat(formData.get("price") as string);
 
-        // Review
         if (formData.has("rating")) updates.rating = parseFloat(formData.get("rating") as string);
         if (formData.has("expertRatings")) updates.expertRatings = formData.get("expertRatings") as string;
         const tastingNotes = formData.getAll("tastingNotes") as string[];
@@ -145,12 +117,11 @@ export async function updateWineAction(id: string, formData: FormData, sheetTitl
         revalidatePath("/");
         revalidatePath("/cellar");
         revalidatePath("/wishlist");
-        revalidatePath(`/wine/${id}`);
 
         return { success: true };
     } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
-        console.error("Update error:", message);
+        console.error("updateWineAction failed:", message);
         return { success: false, error: message };
     }
 }
@@ -164,35 +135,44 @@ export async function deleteWineAction(id: string, sheetTitle: "Cellar" | "Wishl
         return { success: true };
     } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
-        console.error("Delete error:", message);
+        console.error("deleteWineAction failed:", message);
         return { success: false, error: message };
     }
 }
+
 export async function updateQuantityAction(id: string, newQuantity: number, sheetTitle: "Cellar" | "Wishlist") {
     try {
-        console.log(`[Action] updateQuantityAction: ID=${id}, Quantity=${newQuantity}, Sheet=${sheetTitle}`);
-        const updates: Partial<Wine> = { quantity: newQuantity };
-        await updateWine(id, updates, sheetTitle);
-
+        await updateWine(id, { quantity: newQuantity }, sheetTitle);
         revalidatePath("/");
         revalidatePath("/cellar");
         revalidatePath("/wishlist");
-
-        console.log(`[Action] updateQuantityAction SUCCESS`);
         return { success: true };
     } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
-        console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        console.error("QUANTITY UPDATE ERROR:", message);
-        console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+        console.error("updateQuantityAction failed:", message);
+        return { success: false, error: message };
+    }
+}
+
+export async function moveToCellarAction(wine: Wine) {
+    try {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { id, dateAdded, ...wineData } = wine;
+        await addWine(wineData, ["Cellar"]);
+        await deleteWine(id, "Wishlist");
+        revalidatePath("/");
+        revalidatePath("/cellar");
+        revalidatePath("/wishlist");
+        return { success: true };
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.error("moveToCellarAction failed:", message);
         return { success: false, error: message };
     }
 }
 
 export async function fetchRatings(name: string, vintage: number) {
     try {
-        console.log(`[AI Ratings] Searching for: ${name} ${vintage}`);
-
         const { VertexAI } = await import("@google-cloud/vertexai");
         const rawJson = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
 
@@ -204,13 +184,13 @@ export async function fetchRatings(name: string, vintage: number) {
                 location: "europe-west1",
                 googleAuthOptions: credentials ? { credentials } : undefined
             });
-        } catch (e) {
+        } catch {
             vertexAI = new VertexAI({ project: "veni-vidi-vinoantigrav", location: "europe-west1" });
         }
 
         const model = vertexAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-        const prompt = `Search for world-class expert scores for the wine: '${name} ${vintage}'.
-        Return a JSON array of available scores from these specific sources only:
+        const prompt = `Based on your training data, what expert scores have been published for '${name} ${vintage}'?
+        Return a JSON array only for scores you have actually seen referenced in your training data:
         - Parker (Robert Parker / Wine Advocate)
         - Suckling (James Suckling)
         - Spectator (Wine Spectator)
@@ -218,9 +198,9 @@ export async function fetchRatings(name: string, vintage: number) {
         - Decanter (Decanter Magazine)
         - Jancis (Jancis Robinson)
 
-        Format example: [{"source": "Parker", "score": "96"}, {"source": "Suckling", "score": "98"}].
-        Use only the short names: Parker, Suckling, Spectator, Vinous, Decanter, Jancis.
-        If a source is not found, do not include it. 
+        Format: [{"source": "Parker", "score": "96"}].
+        Short names only: Parker, Suckling, Spectator, Vinous, Decanter, Jancis.
+        If unknown or uncertain, return [].
         Return ONLY raw valid JSON. No markdown.`;
 
         const result = await model.generateContent(prompt);
