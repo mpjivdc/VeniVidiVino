@@ -149,12 +149,16 @@ export function AddWineForm() {
 
     const scanLabel = async (file: File) => {
         setIsScanning(true)
+        setSaveError(null)
         try {
             const formData = new FormData()
             formData.append("image", file)
             const response = await fetch("/api/upload", { method: "POST", body: formData })
-            if (!response.ok) throw new Error("Scan failed")
             const data = await response.json()
+
+            if (!response.ok || data._error) {
+                throw new Error(data._error || `Scan failed (${response.status})`)
+            }
 
             if (data.name) setName(data.name)
             if (data.producer) setProducer(data.producer)
@@ -168,14 +172,13 @@ export function AddWineForm() {
             if (data.pairings) setPairingSuggestions(data.pairings)
             if (data.tastingNotes) setTastingNotes(data.tastingNotes)
 
-            // NEW: Fetch expert ratings
             if (data.name && data.year) {
                 const ratings = await fetchRatings(data.name, data.year);
-                if (ratings && ratings.length > 0) {
-                    setExpertRatings(JSON.stringify(ratings));
-                }
+                if (ratings && ratings.length > 0) setExpertRatings(JSON.stringify(ratings));
             }
         } catch (error) {
+            const message = error instanceof Error ? error.message : String(error)
+            setSaveError(`Label scan failed: ${message}`)
             console.error("Scan error", error)
         } finally {
             setIsScanning(false)
@@ -215,6 +218,8 @@ export function AddWineForm() {
                 if (ratings && ratings.length > 0) setExpertRatings(JSON.stringify(ratings));
             }
         } catch (error) {
+            const message = error instanceof Error ? error.message : String(error)
+            setSaveError(`Lookup failed: ${message}`)
             console.error("Lookup error", error);
         } finally {
             setIsLookingUp(false);
