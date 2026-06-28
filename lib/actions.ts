@@ -173,40 +173,30 @@ export async function moveToCellarAction(wine: Wine) {
 
 export async function fetchRatings(name: string, vintage: number) {
     try {
-        const { VertexAI } = await import("@google-cloud/vertexai");
-        const rawJson = process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;
+        const { GoogleGenerativeAI } = await import("@google/generative-ai");
+        const apiKey = process.env.GOOGLE_AI_API_KEY;
+        if (!apiKey) return [];
 
-        let vertexAI;
-        try {
-            const credentials = rawJson ? JSON.parse(rawJson.trim()) : undefined;
-            vertexAI = new VertexAI({
-                project: "veni-vidi-vinoantigrav",
-                location: "europe-west1",
-                googleAuthOptions: credentials ? { credentials } : undefined
-            });
-        } catch {
-            vertexAI = new VertexAI({ project: "veni-vidi-vinoantigrav", location: "europe-west1" });
-        }
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-        const model = vertexAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         const prompt = `Based on your training data, what expert scores have been published for '${name} ${vintage}'?
-        Return a JSON array only for scores you have actually seen referenced in your training data:
-        - Parker (Robert Parker / Wine Advocate)
-        - Suckling (James Suckling)
-        - Spectator (Wine Spectator)
-        - Vinous (Antonio Galloni / Vinous)
-        - Decanter (Decanter Magazine)
-        - Jancis (Jancis Robinson)
+Return a JSON array only for scores you have actually seen referenced:
+- Parker (Robert Parker / Wine Advocate)
+- Suckling (James Suckling)
+- Spectator (Wine Spectator)
+- Vinous (Antonio Galloni / Vinous)
+- Decanter (Decanter Magazine)
+- Jancis (Jancis Robinson)
 
-        Format: [{"source": "Parker", "score": "96"}].
-        Short names only: Parker, Suckling, Spectator, Vinous, Decanter, Jancis.
-        If unknown or uncertain, return [].
-        Return ONLY raw valid JSON. No markdown.`;
+Format: [{"source": "Parker", "score": "96"}].
+Short names only: Parker, Suckling, Spectator, Vinous, Decanter, Jancis.
+If unknown or uncertain, return [].
+Return ONLY raw valid JSON. No markdown.`;
 
         const result = await model.generateContent(prompt);
-        const text = result.response.candidates?.[0]?.content?.parts?.[0]?.text || "[]";
+        const text = result.response.text();
         const jsonString = text.replace(/```json/g, "").replace(/```/g, "").trim();
-
         return JSON.parse(jsonString);
     } catch (error) {
         console.error("[AI Ratings] Error:", error);

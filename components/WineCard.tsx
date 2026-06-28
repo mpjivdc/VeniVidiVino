@@ -12,7 +12,7 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { useState } from "react"
-import { Plus, Minus, Wine } from "lucide-react"
+import { Plus, Minus } from "lucide-react"
 import { Button } from "./ui/button"
 import { updateQuantityAction } from "@/lib/actions"
 
@@ -32,12 +32,19 @@ export const getFlag = (countryName: string) => {
         "South Africa": "🇿🇦",
         "Austria": "🇦🇹",
     };
-    // Basic fuzzy match or direct lookup
     for (const [key, value] of Object.entries(flags)) {
         if (countryName.toLowerCase().includes(key.toLowerCase())) return value;
     }
     return "🏳️";
 };
+
+const WineBottleSVG = () => (
+    <svg viewBox="0 0 60 160" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-12 h-36 opacity-[0.07]">
+        <rect x="22" y="0" width="16" height="20" rx="3" fill="currentColor" />
+        <path d="M22 20 C16 32 12 44 12 60 L12 145 C12 152 17 158 24 158 L36 158 C43 158 48 152 48 145 L48 60 C48 44 44 32 38 20 Z" fill="currentColor" />
+        <rect x="12" y="80" width="36" height="3" rx="1.5" fill="black" opacity="0.15" />
+    </svg>
+);
 
 interface WineCardProps {
     wine: WineType
@@ -54,7 +61,6 @@ export function WineCard({ wine, sheetTitle, onQuantityChange }: WineCardProps) 
         let next = Math.max(0, optimisticQuantity + delta);
         if (next === optimisticQuantity) return;
 
-        // Last bottle confirmation logic
         if (optimisticQuantity === 1 && delta === -1) {
             const confirmed = window.confirm("Was this your last bottle? This wine will be moved to your history.");
             if (!confirmed) return;
@@ -62,34 +68,27 @@ export function WineCard({ wine, sheetTitle, onQuantityChange }: WineCardProps) 
         }
 
         setOptimisticQuantity(next);
-
-        // Notify parent immediately for instant filtering
-        if (onQuantityChange) {
-            onQuantityChange(wine.id, next);
-        }
+        if (onQuantityChange) onQuantityChange(wine.id, next);
 
         const result = await updateQuantityAction(wine.id, next, sheetTitle);
         if (!result.success) {
-            setOptimisticQuantity(wine.quantity); // Revert on failure
-            if (onQuantityChange) {
-                onQuantityChange(wine.id, wine.quantity);
-            }
+            setOptimisticQuantity(wine.quantity);
+            if (onQuantityChange) onQuantityChange(wine.id, wine.quantity);
         }
     };
 
-    // Simplified Status Indicator Logic
     const currentYear = new Date().getFullYear();
-    let windowStatus = { color: "text-muted-foreground/30", label: "No window info", iconColor: "text-muted-foreground/30" };
+    let windowStatus = { dotColor: "", label: "No window info" };
 
     if (wine.drinkFrom && wine.drinkTo) {
         if (currentYear < wine.drinkFrom) {
-            windowStatus = { color: "bg-blue-500", label: "Too young", iconColor: "text-blue-500" }
+            windowStatus = { dotColor: "bg-blue-500", label: "Too young" };
         } else if (currentYear >= wine.drinkFrom && currentYear < wine.drinkTo) {
-            windowStatus = { color: "bg-green-500", label: "Ready to drink", iconColor: "text-green-500" }
+            windowStatus = { dotColor: "bg-green-500", label: "Ready to drink" };
         } else if (currentYear === wine.drinkTo) {
-            windowStatus = { color: "bg-orange-500", label: "Drink now", iconColor: "text-orange-500" }
+            windowStatus = { dotColor: "bg-orange-500", label: "Drink now" };
         } else if (currentYear > wine.drinkTo) {
-            windowStatus = { color: "bg-red-500", label: "Past peak", iconColor: "text-red-500" }
+            windowStatus = { dotColor: "bg-red-500", label: "Past peak" };
         }
     }
 
@@ -98,85 +97,109 @@ export function WineCard({ wine, sheetTitle, onQuantityChange }: WineCardProps) 
     return (
         <Drawer open={isOpen} onOpenChange={setIsOpen}>
             <DrawerTrigger asChild>
-                <Card className={`overflow-hidden border-white/5 bg-card rounded-xl shadow-lg transition-all hover:bg-white/[0.02] active:scale-[0.98] cursor-pointer relative ${optimisticQuantity === 0 ? "opacity-50" : ""}`}>
-                    {optimisticQuantity === 0 && (
-                        <div className="absolute top-2 right-12 z-10 transition-all scale-110">
-                            <Badge variant="destructive" className="bg-primary hover:bg-primary text-[9px] px-2 py-0.5 shadow-lg border-none uppercase font-black tracking-wider">Finished</Badge>
-                        </div>
-                    )}
-                    {windowStatus && (
-                        <div className="absolute top-3 right-3 z-10">
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <div className="flex items-center gap-1.5 bg-card/80 backdrop-blur-sm border border-white/5 px-2 py-1 rounded-full shadow-lg">
-                                            <Wine className={`w-3 h-3 ${windowStatus.iconColor} drop-shadow-[0_0_8px_rgba(var(--primary-rgb),0.3)]`} />
-                                            <span className={`text-[8px] font-black uppercase tracking-widest ${windowStatus.iconColor}`}>
-                                                {windowStatus.label}
-                                            </span>
-                                        </div>
-                                    </TooltipTrigger>
-                                    <TooltipContent className="bg-popover text-foreground border-white/10">
-                                        <p className="text-xs font-semibold">{windowStatus.label}</p>
-                                        <p className="text-[10px] opacity-70">Window: {wine.drinkFrom} - {wine.drinkTo}</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
-                        </div>
-                    )}
-                    <CardContent className="p-0 flex h-32">
-                        <div className="w-24 relative bg-black/20 shrink-0">
-                            {wine.image ? (
-                                <img
-                                    src={wine.image}
-                                    alt={wine.name}
-                                    className="object-cover w-full h-full"
-                                />
-                            ) : (
-                                <div className="flex h-full items-center justify-center text-muted-foreground text-[10px] p-2 text-center uppercase font-bold tracking-tighter opacity-50">
-                                    No Image
-                                </div>
+                <Card className={`overflow-hidden border-white/5 bg-card rounded-2xl shadow-lg transition-all hover:bg-white/[0.02] active:scale-[0.97] cursor-pointer flex flex-col ${optimisticQuantity === 0 ? "opacity-50" : ""}`}>
+                    {/* Image Hero */}
+                    <div className="h-44 relative bg-gradient-to-b from-black/20 to-black/40 shrink-0 overflow-hidden">
+                        {wine.image ? (
+                            <img
+                                src={wine.image}
+                                alt={wine.name}
+                                className="object-cover w-full h-full"
+                            />
+                        ) : (
+                            <div className="flex items-center justify-center h-full text-foreground">
+                                <WineBottleSVG />
+                            </div>
+                        )}
+
+                        {/* Gradient overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent pointer-events-none" />
+
+                        {/* Vintage badge — bottom-left */}
+                        {wine.vintage && (
+                            <div className="absolute bottom-2 left-2">
+                                <span className="text-[10px] font-black text-white/90 bg-black/50 backdrop-blur-sm px-2 py-0.5 rounded-md tracking-wider">
+                                    {wine.vintage}
+                                </span>
+                            </div>
+                        )}
+
+                        {/* Finished badge */}
+                        {optimisticQuantity === 0 && (
+                            <div className="absolute top-2 left-2">
+                                <Badge variant="destructive" className="bg-primary text-[9px] px-2 py-0.5 border-none uppercase font-black tracking-wider">
+                                    Finished
+                                </Badge>
+                            </div>
+                        )}
+
+                        {/* Drink window dot — top-right */}
+                        {windowStatus.dotColor && (
+                            <div className="absolute top-2.5 right-2.5">
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <div className={`w-2.5 h-2.5 rounded-full ${windowStatus.dotColor} shadow-lg ring-2 ring-black/30`} />
+                                        </TooltipTrigger>
+                                        <TooltipContent className="bg-popover text-foreground border-white/10">
+                                            <p className="text-xs font-semibold">{windowStatus.label}</p>
+                                            <p className="text-[10px] opacity-70">Window: {wine.drinkFrom}–{wine.drinkTo}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Info */}
+                    <CardContent className="p-3 flex flex-col flex-1">
+                        <div className="flex items-start justify-between gap-1 mb-0.5">
+                            <h3 className="font-bold text-[13px] leading-tight line-clamp-2 flex-1 text-foreground">
+                                {countryFlag && <span className="mr-1">{countryFlag}</span>}
+                                {wine.name}
+                            </h3>
+                            {wine.rating && (
+                                <span className="text-primary font-black text-xs shrink-0">{wine.rating}</span>
                             )}
                         </div>
-                        <div className="flex-1 p-4 flex flex-col justify-between">
-                            <div>
-                                <div className="flex justify-between items-start mb-1">
-                                    <h3 className="font-bold text-sm line-clamp-2 leading-tight pr-4 text-foreground">
-                                        {countryFlag && <span className="mr-1.5">{countryFlag}</span>}
-                                        {wine.name}
-                                    </h3>
-                                    {wine.rating && (
-                                        <div className="flex items-center text-primary font-black text-xs shrink-0 ml-2">
-                                            {wine.rating}
-                                        </div>
-                                    )}
-                                </div>
-                                <p className="text-[11px] text-muted-foreground font-medium line-clamp-1">{wine.producer}</p>
-                                {wine.country && <p className="text-[10px] text-muted-foreground opacity-60 mt-0.5">{wine.region ? `${wine.region}, ` : ''}{wine.country}</p>}
-                            </div>
-                            <div className="flex items-center gap-2 mt-2 overflow-hidden">
-                                <div className="flex items-center bg-white/5 rounded-full border border-white/5 px-1 shrink-0">
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-6 w-6 rounded-full hover:bg-white/10 text-muted-foreground"
-                                        onClick={(e) => handleQuantityChange(e, -1)}
-                                    >
-                                        <Minus className="h-3 w-3" />
-                                    </Button>
-                                    <span className="text-[11px] font-black min-w-[1.2rem] text-center text-foreground">{optimisticQuantity}</span>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-6 w-6 rounded-full hover:bg-white/10 text-muted-foreground"
-                                        onClick={(e) => handleQuantityChange(e, 1)}
-                                    >
-                                        <Plus className="h-3 w-3" />
-                                    </Button>
-                                </div>
-                                <Badge variant="secondary" className="bg-white/5 text-muted-foreground text-[9px] px-2 h-6 shrink-0 border-none font-bold">{wine.vintage}</Badge>
-                                <Badge variant="outline" className="text-[9px] px-2 h-6 border-primary/30 text-primary shrink-0 truncate font-bold uppercase tracking-wider">{wine.type}</Badge>
-                            </div>
+
+                        <p className="text-[10px] text-muted-foreground font-medium line-clamp-1 mb-2">
+                            {wine.producer}
+                        </p>
+
+                        <div className="flex items-center gap-1.5 mt-auto">
+                            <Badge variant="outline" className="text-[9px] px-1.5 h-5 border-primary/30 text-primary font-bold uppercase tracking-wider">
+                                {wine.type}
+                            </Badge>
+                            {wine.region && (
+                                <span className="text-[9px] text-muted-foreground/50 font-medium truncate">{wine.region}</span>
+                            )}
+                        </div>
+
+                        {/* Quantity controls */}
+                        <div
+                            className="flex items-center justify-between bg-white/[0.03] rounded-xl border border-white/5 mt-3 px-1"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 rounded-lg hover:bg-white/10 text-muted-foreground"
+                                onClick={(e) => handleQuantityChange(e, -1)}
+                            >
+                                <Minus className="h-3 w-3" />
+                            </Button>
+                            <span className="text-[11px] font-black text-foreground min-w-[1.5rem] text-center">
+                                {optimisticQuantity}
+                            </span>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 rounded-lg hover:bg-white/10 text-muted-foreground"
+                                onClick={(e) => handleQuantityChange(e, 1)}
+                            >
+                                <Plus className="h-3 w-3" />
+                            </Button>
                         </div>
                     </CardContent>
                 </Card>

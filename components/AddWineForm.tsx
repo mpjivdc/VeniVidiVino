@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Camera, Loader2, Info, GlassWater, Calendar, Euro, Plus, X, Check, Filter, History } from "lucide-react"
+import { Camera, Loader2, Info, GlassWater, Calendar, Euro, Plus, X, Check, Filter, History, Search } from "lucide-react"
 import { createWine, fetchRatings } from "@/lib/actions"
 import { WineType } from "@/lib/types"
 
@@ -120,6 +120,7 @@ export function AddWineForm() {
     const [personalNotes, setPersonalNotes] = useState("")
     const [expertRatings, setExpertRatings] = useState("")
     const [saveError, setSaveError] = useState<string | null>(null)
+    const [isLookingUp, setIsLookingUp] = useState(false)
 
     // Auto-trigger scan if requested
     React.useEffect(() => {
@@ -148,12 +149,16 @@ export function AddWineForm() {
 
     const scanLabel = async (file: File) => {
         setIsScanning(true)
+        setSaveError(null)
         try {
             const formData = new FormData()
             formData.append("image", file)
             const response = await fetch("/api/upload", { method: "POST", body: formData })
-            if (!response.ok) throw new Error("Scan failed")
             const data = await response.json()
+
+            if (!response.ok || data._error) {
+                throw new Error(data._error || `Scan failed (${response.status})`)
+            }
 
             if (data.name) setName(data.name)
             if (data.producer) setProducer(data.producer)
@@ -167,19 +172,59 @@ export function AddWineForm() {
             if (data.pairings) setPairingSuggestions(data.pairings)
             if (data.tastingNotes) setTastingNotes(data.tastingNotes)
 
-            // NEW: Fetch expert ratings
             if (data.name && data.year) {
                 const ratings = await fetchRatings(data.name, data.year);
-                if (ratings && ratings.length > 0) {
-                    setExpertRatings(JSON.stringify(ratings));
-                }
+                if (ratings && ratings.length > 0) setExpertRatings(JSON.stringify(ratings));
             }
         } catch (error) {
+            const message = error instanceof Error ? error.message : String(error)
+            setSaveError(`Label scan failed: ${message}`)
             console.error("Scan error", error)
         } finally {
             setIsScanning(false)
         }
     }
+
+    const lookupWine = async () => {
+        if (!name.trim()) return;
+        setIsLookingUp(true);
+        try {
+            const response = await fetch("/api/lookup", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name: name.trim(), vintage: vintage ? parseInt(vintage) : undefined }),
+            });
+            if (!response.ok) throw new Error("Lookup failed");
+            const data = await response.json();
+            if (data._error) throw new Error(data._error);
+
+            if (data.name) setName(data.name);
+            if (data.producer) setProducer(data.producer);
+            if (data.year) setVintage(data.year.toString());
+            if (data.type && wineTypes.includes(data.type)) setType(data.type);
+            if (data.country) setCountry(data.country);
+            if (data.region) setRegion(data.region);
+            if (data.subRegion) setSubRegion(data.subRegion);
+            if (data.grapes) setGrapes(Array.isArray(data.grapes) ? data.grapes.join(", ") : data.grapes);
+            if (data.alcohol) setAlcoholContent(data.alcohol.toString());
+            if (data.drinkFrom) setDrinkFrom(data.drinkFrom.toString());
+            if (data.drinkTo) setDrinkTo(data.drinkTo.toString());
+            if (data.pairings) setPairingSuggestions(data.pairings);
+            if (data.tastingNotes) setTastingNotes(data.tastingNotes);
+
+            const wineYear = data.year || (vintage ? parseInt(vintage) : undefined);
+            if (wineYear) {
+                const ratings = await fetchRatings(data.name || name, wineYear);
+                if (ratings && ratings.length > 0) setExpertRatings(JSON.stringify(ratings));
+            }
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error)
+            setSaveError(`Lookup failed: ${message}`)
+            console.error("Lookup error", error);
+        } finally {
+            setIsLookingUp(false);
+        }
+    };
 
     const toggleNote = (note: string) => {
         if (tastingNotes.includes(note)) {
@@ -309,14 +354,28 @@ export function AddWineForm() {
                     <div className="space-y-5">
                         <div>
                             <Label>Wine Name</Label>
-                            <Input
-                                type="text"
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                placeholder="e.g. Sassicaia"
-                                required
-                                disabled={isSubmitting}
-                            />
+                            <div className="flex gap-2">
+                                <Input
+                                    type="text"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    placeholder="e.g. Sassicaia"
+                                    required
+                                    disabled={isSubmitting || isLookingUp}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={lookupWine}
+                                    disabled={!name.trim() || isSubmitting || isLookingUp}
+                                    title="AI Lookup"
+                                    className="shrink-0 flex items-center justify-center w-14 bg-card border border-white/5 rounded-xl hover:border-primary/40 hover:bg-primary/10 transition-all disabled:opacity-30 disabled:cursor-not-allowed text-primary"
+                                >
+                                    {isLookingUp ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                                </button>
+                            </div>
+                            <p className="text-[9px] text-muted-foreground/40 mt-1.5 ml-1 uppercase tracking-wider font-bold">
+                                Type a name then tap <Search className="h-2.5 w-2.5 inline-block" /> to auto-fill with AI
+                            </p>
                         </div>
 
                         <div>
