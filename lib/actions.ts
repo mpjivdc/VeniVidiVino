@@ -178,7 +178,7 @@ export async function fetchRatings(name: string, vintage: number) {
         if (!apiKey) return [];
 
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite" });
 
         const prompt = `Based on your training data, what expert scores have been published for '${name} ${vintage}'?
 Return a JSON array only for scores you have actually seen referenced:

@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
         const base64Image = buffer.toString("base64");
 
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite" });
 
         const result = await model.generateContent([
             {
@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
         const jsonString = text.replace(/```json/g, "").replace(/```/g, "").trim();
         const data = JSON.parse(jsonString);
 
-        return NextResponse.json({ ...data, _model: "gemini-2.0-flash" });
+        return NextResponse.json({ ...data, _model: "gemini-2.0-flash-lite" });
     } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
         console.error("[AI Scan] Error:", message);
